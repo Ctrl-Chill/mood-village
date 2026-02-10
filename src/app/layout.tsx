@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -25,9 +26,36 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-slate-50 text-slate-900 antialiased`}
       >
-        {children}
+        <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
+          <header className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <Link href="/" className="text-xl font-semibold tracking-tight">
+              Mood Village
+            </Link>
+            <nav className="flex flex-wrap gap-3 text-sm font-medium">
+              <Link className="rounded-full bg-white px-4 py-2 shadow-sm" href="/about">
+                About
+              </Link>
+              <Link className="rounded-full bg-white px-4 py-2 shadow-sm" href="/village">
+                Village
+              </Link>
+              <Link className="rounded-full bg-white px-4 py-2 shadow-sm" href="/events">
+                Events
+              </Link>
+              <Link className="rounded-full bg-white px-4 py-2 shadow-sm" href="/progress">
+                Progress
+              </Link>
+              <Link className="rounded-full bg-white px-4 py-2 shadow-sm" href="/profile">
+                Profile
+              </Link>
+            </nav>
+          </header>
+          <main className="flex-1 py-10">{children}</main>
+          <footer className="border-t border-slate-200 pt-6 text-xs text-slate-500">
+            Built for the Mood Village hackathon.
+          </footer>
+        </div>
       </body>
     </html>
   );
