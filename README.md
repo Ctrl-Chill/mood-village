@@ -20,6 +20,32 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Events Tab Backend Setup (Supabase)
+
+The Events tab is wired to `/api/events` and `/api/events/[eventId]/rsvp` with:
+- Supabase mode when env vars are available
+- In-memory fallback mode when Supabase is not configured
+
+1. Create a `.env.local` file:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+# Optional for server-side privileged writes:
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+2. Run SQL setup in Supabase SQL editor:
+- `supabase/events_schema.sql`
+
+3. Start app:
+
+```bash
+npm run dev
+```
+
+If Supabase is configured, the Events page will show `Live DB`; otherwise it shows `Memory fallback`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

@@ -124,3 +124,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+.frost-bg {
+  background-color: #000;
+  background-image: url("/background-landscape.jpg");
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: contain;
+  image-rendering: auto;
+  filter: none;
+  opacity: 1;
+}
