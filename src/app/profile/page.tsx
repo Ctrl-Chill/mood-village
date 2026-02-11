@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase";
 
 type SectionId = "overview" | "settings" | "safety" | "account";
@@ -54,12 +55,14 @@ function roleToLabel(role?: string | null) {
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const hasSupabase = Boolean(supabase);
 
   const [profile, setProfile] = useState<ProfileViewModel>(MOCK_PROFILE);
   const [activeSection, setActiveSection] = useState<SectionId>("overview");
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isSavingTrustedContact, setIsSavingTrustedContact] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -95,7 +98,11 @@ export default function ProfilePage() {
       } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        if (!cancelled) setIsLoadingProfile(false);
+        if (!cancelled) {
+          setIsAuthorized(false);
+          setIsLoadingProfile(false);
+          router.replace("/login");
+        }
         return;
       }
 
@@ -137,6 +144,7 @@ export default function ProfilePage() {
       };
 
       setProfile(nextProfile);
+      setIsAuthorized(true);
       setTrustedContactDraftName(nextProfile.trustedContactName);
       setTrustedContactDraftPhone(nextProfile.trustedContactPhone);
       setEventNotifications(profileRow?.notification_events ?? true);
@@ -152,7 +160,7 @@ export default function ProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [supabase]);
+  }, [router, supabase]);
 
   async function upsertProfilePatch(patch: Record<string, unknown>) {
     if (!supabase) return { ok: false, message: "Supabase is not configured." };
@@ -224,6 +232,28 @@ export default function ProfilePage() {
     ? "min-h-screen -mx-4 bg-slate-950 px-4 py-6 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
     : "-mx-4 bg-transparent px-4 py-2 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8";
 
+  if (!hasSupabase) {
+    return (
+      <div className={pageShell}>
+        <section className="mx-auto w-full max-w-6xl space-y-6 pb-12">
+          <p className={darkMode ? "text-amber-200" : "text-amber-700"}>
+            Supabase env vars are missing. Configure auth to access profile.
+          </p>
+        </section>
+      </div>
+    );
+  }
+
+  if (isLoadingProfile || !isAuthorized) {
+    return (
+      <div className={pageShell}>
+        <section className="mx-auto w-full max-w-6xl space-y-6 pb-12">
+          <p className={darkMode ? "text-slate-300" : "text-slate-600"}>Checking session...</p>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className={pageShell}>
       <section className="mx-auto w-full max-w-6xl space-y-6 pb-12">
@@ -263,16 +293,6 @@ export default function ProfilePage() {
               </button>
             ))}
           </div>
-
-          {!hasSupabase ? (
-            <p className={darkMode ? "mb-4 text-amber-200" : "mb-4 text-amber-700"}>
-              Supabase env vars are missing. Showing fallback profile data.
-            </p>
-          ) : null}
-
-          {isLoadingProfile ? (
-            <p className={darkMode ? "mb-4 text-slate-300" : "mb-4 text-slate-600"}>Loading profile...</p>
-          ) : null}
 
           {notice ? (
             <p className={darkMode ? "mb-4 text-sm text-sky-200" : "mb-4 text-sm text-sky-700"}>{notice}</p>
