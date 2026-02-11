@@ -17,8 +17,8 @@ export default function RootLayout({
       <body
         className="frost-bg min-h-screen text-slate-900 antialiased"
       >
-        <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
-          <header className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="page-shell mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
+          <header className="site-header rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <Link href="/" className="text-xl font-black tracking-tight text-slate-900">
               Mood Village
@@ -26,6 +26,9 @@ export default function RootLayout({
             <nav className="flex flex-wrap gap-3 text-sm font-medium">
               <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700" href="/about">
                 About
+              </Link>
+              <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700" href="/map">
+                Map
               </Link>
               <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700" href="/events">
                 Events
@@ -39,8 +42,8 @@ export default function RootLayout({
             </nav>
             </div>
           </header>
-          <main className="flex-1 py-10">{children}</main>
-          <footer className="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500">
+          <main className="site-main flex-1 py-10">{children}</main>
+          <footer className="site-footer mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500">
             Built for the Mood Village hackathon.
           </footer>
         </div>

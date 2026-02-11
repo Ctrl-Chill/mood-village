@@ -128,3 +128,37 @@
 body.frost-bg {
   background: #c9dbee url("/background-landscape.jpg") center center / cover no-repeat fixed !important;
 }
+
+body.map-page {
+  background: #0b1220;
+}
+
+body.map-page.frost-bg {
+  background: #0b1220 !important;
+}
+
+body.map-page .page-shell {
+  max-width: none;
+  padding: 0;
+}
+
+body.map-page .site-main {
+  padding: 0;
+}
+
+body.map-page .site-header {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+body.map-page .site-footer {
+  display: none;
+}
