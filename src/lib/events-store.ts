@@ -65,7 +65,7 @@ const seedEvents: MemoryEvent[] = [
 
 const memoryEvents = new Map(seedEvents.map((event) => [event.id, event]));
 
-type SupabaseClient = ReturnType<typeof createClient> | null;
+type SupabaseClient = ReturnType<typeof createClient<any>> | null;
 
 function getSupabaseClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -73,7 +73,7 @@ function getSupabaseClient(): SupabaseClient {
     process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key) return null;
-  return createClient(url, key, { auth: { persistSession: false } });
+  return createClient<any>(url, key, { auth: { persistSession: false } });
 }
 
 function toEventItem(event: MemoryEvent, userId: string): EventItem {
@@ -105,6 +105,10 @@ function sortByDateAsc(a: { startsAt: string }, b: { startsAt: string }) {
   return new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime();
 }
 
+function isRSVPStatus(value: unknown): value is RSVPStatus {
+  return value === "yes" || value === "maybe" || value === "no";
+}
+
 export async function listEvents(userId: string): Promise<{ source: "supabase" | "memory"; events: EventItem[] }> {
   const supabase = getSupabaseClient();
   if (supabase) {
@@ -129,9 +133,9 @@ export async function listEvents(userId: string): Promise<{ source: "supabase" |
           allRsvps
             .filter((rsvp) => rsvp.event_id === event.id)
             .forEach((rsvp) => {
-              if (rsvp.status === "yes" || rsvp.status === "maybe" || rsvp.status === "no") {
+              if (isRSVPStatus(rsvp.status)) {
                 counts[rsvp.status] += 1;
-                members[rsvp.status].push(rsvp.user_id);
+                members[rsvp.status].push(String(rsvp.user_id));
                 if (rsvp.user_id === userId) {
                   userRsvp = rsvp.status;
                 }

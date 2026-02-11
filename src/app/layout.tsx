@@ -15,10 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className="relative min-h-screen text-slate-900 antialiased"
+        className="frost-bg min-h-screen text-slate-900 antialiased"
       >
-        <div className="frost-bg pointer-events-none fixed inset-0 -z-10" />
-        <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
+        <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
           <header className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <Link href="/" className="text-xl font-black tracking-tight text-slate-900">
