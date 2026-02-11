@@ -16,6 +16,39 @@ export function createBrowserSupabaseClient() {
   return browserClient;
 }
 
+export function getDefaultAvatar(seed: string) {
+  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed || "MoodVillageUser")}`;
+}
+
+export async function uploadAvatarImage(
+  client: NonNullable<ReturnType<typeof createBrowserSupabaseClient>>,
+  userId: string,
+  file: File,
+) {
+  const fileExt = file.name.split(".").pop()?.toLowerCase() || "png";
+  const filePath = `${userId}/avatar.${fileExt}`;
+
+  const { error: uploadError } = await client.storage.from("avatars").upload(filePath, file, {
+    upsert: true,
+    contentType: file.type || "image/png",
+  });
+
+  if (uploadError) {
+    if (/bucket not found/i.test(uploadError.message || "")) {
+      return {
+        data: null,
+        error: new Error(
+          "Avatar upload is not configured yet. Supabase Storage bucket 'avatars' is missing. Run supabase/profile_auth_schema.sql in your Supabase SQL editor.",
+        ),
+      };
+    }
+    return { data: null, error: uploadError };
+  }
+
+  const { data } = client.storage.from("avatars").getPublicUrl(filePath);
+  return { data: { publicUrl: data.publicUrl }, error: null };
+}
+
 export const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;

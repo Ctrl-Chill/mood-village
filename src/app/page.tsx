@@ -106,15 +106,17 @@ export default function Home() {
     return fallbackQuotes[mood as keyof typeof fallbackQuotes];
   };
 
+  
+
   return (
     <section className="flex min-h-[60vh] items-center justify-center p-4">
-      <div className="w-full max-w-2xl rounded-2xl border-2 border-[#314966] bg-[#dce9f8] p-8 shadow-[0_8px_20px_rgba(39,64,92,0.18)]">
+      <div className="w-full max-w-2xl rounded-2xl border-2 border-[#314966] bg-[#dce9f8] p-8 shadow-[0_8px_20px_rgba(39,64,92,0.18)] dark:border-slate-600 dark:bg-slate-900/90 dark:shadow-[0_8px_20px_rgba(2,6,23,0.5)]">
         {/* Header */}
         <div className="text-center">
-          <p className="text-xl font-black text-[#15263d] sm:text-2xl">
+          <p className="text-xl font-black text-[#15263d] dark:text-slate-100 sm:text-2xl">
             Hi, how are you today?
           </p>
-          <p className="mt-2 text-sm text-[#355072]">
+          <p className="mt-2 text-sm text-[#355072] dark:text-slate-300">
             1 is super sad and 5 is super happy.
           </p>
         </div>
@@ -127,13 +129,13 @@ export default function Home() {
         </div>
 
         {/* Mood Label */}
-        <p className="mt-3 text-center text-lg font-semibold text-[#1d3048]">
+        <p className="mt-3 text-center text-lg font-semibold text-[#1d3048] dark:text-slate-100">
           Feeling {moodLabels[moodLevel as keyof typeof moodLabels]}
         </p>
 
         {/* Slider */}
         <div className="mt-6">
-          <div className="flex items-center justify-between text-sm font-semibold text-[#1d3048]">
+          <div className="flex items-center justify-between text-sm font-semibold text-[#1d3048] dark:text-slate-200">
             <span>Mood level</span>
             <span>{moodLevel} / 5</span>
           </div>
@@ -147,7 +149,7 @@ export default function Home() {
             value={moodLevel}
             onChange={(event) => setMoodLevel(Number(event.target.value))}
           />
-          <div className="mt-2 flex justify-between text-[11px] text-[#5f7fa3]">
+          <div className="mt-2 flex justify-between text-[11px] text-[#5f7fa3] dark:text-slate-400">
             <span>1</span>
             <span>2</span>
             <span>3</span>
@@ -161,7 +163,7 @@ export default function Home() {
           <button
             onClick={getEncouragementHF}
             disabled={isLoading}
-            className="w-full rounded-xl border-2 border-[#314966] bg-[#27405c] px-6 py-3 font-bold text-white shadow-md transition-all duration-200 hover:bg-[#1d3048] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-xl border-2 border-[#314966] bg-[#27405c] px-6 py-3 font-bold text-white shadow-md transition-all duration-200 hover:bg-[#1d3048] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-500 dark:bg-slate-700 dark:hover:bg-slate-600"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
@@ -195,8 +197,8 @@ export default function Home() {
 
         {/* Encouragement Message */}
         {encouragement && (
-          <div className="mt-6 animate-fadeIn rounded-xl border-l-4 border-[#314966] bg-white/60 p-6 shadow-sm">
-            <p className="text-sm font-medium italic leading-relaxed text-[#1d3048]">
+          <div className="mt-6 animate-fadeIn rounded-xl border-l-4 border-[#314966] bg-white/60 p-6 shadow-sm dark:border-slate-400 dark:bg-slate-800/80">
+            <p className="text-sm font-medium italic leading-relaxed text-[#1d3048] dark:text-slate-100">
               "{encouragement}"
             </p>
           </div>

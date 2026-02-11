@@ -128,3 +128,9 @@
 body.frost-bg {
   background: #c9dbee url("/background-landscape.jpg") center center / cover no-repeat fixed !important;
 }
+
+.dark body.frost-bg {
+  background:
+    linear-gradient(to bottom, rgb(2 6 23 / 90%), rgb(15 23 42 / 88%)),
+    url("/background-landscape.jpg") center center / cover no-repeat fixed !important;
+}

@@ -1,18 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Geist, Geist_Mono } from "next/font/google";
 import { AuthNavActions } from "@/components/auth-nav-actions";
+import { ThemeSync } from "@/components/theme-sync";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -25,42 +15,47 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var k='mood-village-theme';var s=localStorage.getItem(k);var d=s?s==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);}catch(e){}})();",
+          }}
+        />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-slate-50 text-slate-900 antialiased transition-colors dark:bg-slate-950 dark:text-slate-100`}
+        className="frost-bg min-h-screen antialiased text-slate-900 dark:text-slate-100"
       >
-        <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
-          <header className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <Link href="/" className="text-xl font-semibold tracking-tight text-slate-900 transition-colors dark:text-slate-100">
-              Mood Village
-            </Link>
-            <nav className="flex flex-wrap gap-3 text-sm font-medium">
-              <Link
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-800 shadow-sm transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                href="/about"
-              >
-                About
+        <ThemeSync />
+        <div className="page-shell mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
+          <header className="site-header rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <Link href="/" className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">
+                Mood Village
               </Link>
-              <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700" href="/events">
-                Events
-              </Link>
-              <Link
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-800 shadow-sm transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                href="/progress"
-              >
-                Progress
-              </Link>
-              <Link
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-800 shadow-sm transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                href="/profile"
-              >
-                Profile
-              </Link>
-              <AuthNavActions />
-            </nav>
+              <nav className="flex flex-wrap gap-3 text-sm font-medium">
+                <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" href="/about">
+                  About
+                </Link>
+                <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" href="/map">
+                  Map
+                </Link>
+                <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" href="/events">
+                  Events
+                </Link>
+                <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" href="/progress">
+                  Progress
+                </Link>
+                <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" href="/profile">
+                  Profile
+                </Link>
+                <AuthNavActions />
+              </nav>
+            </div>
           </header>
-          <main className="flex-1 py-10">{children}</main>
-          <footer className="border-t border-slate-200 pt-6 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+          <main className="site-main flex-1 py-10">{children}</main>
+          <footer className="site-footer mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-300">
             Built for the Mood Village hackathon.
           </footer>
         </div>
