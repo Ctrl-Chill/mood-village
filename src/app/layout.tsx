@@ -44,6 +44,9 @@ export default function RootLayout({
                 <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" href="/events">
                   Events
                 </Link>
+                <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" href="/lantern">
+                  Lantern
+                </Link>
                 <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" href="/progress">
                   Progress
                 </Link>

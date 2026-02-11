@@ -12,6 +12,7 @@ type FilterMode = "all" | "micro";
 type EventsResponse = {
   source: "supabase" | "memory";
   events: EventItem[];
+  userId: string | null;
 };
 type CreateEventForm = {
   title: string;
@@ -23,8 +24,6 @@ type CreateEventForm = {
   microEvent: boolean;
 };
 type SettingsTab = "create" | "manage";
-
-const currentUserId = "demo-user";
 
 function getDefaultDateTime() {
   const defaultDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 3);
@@ -70,6 +69,7 @@ const statusLabels: Record<RSVPStatus, string> = {
 
 export default function EventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [source, setSource] = useState<"supabase" | "memory">("memory");
   const [viewMode, setViewMode] = useState<ViewMode>("calendar");
   const [calendarMonth, setCalendarMonth] = useState(() => {
@@ -106,6 +106,10 @@ export default function EventsPage() {
   const filteredEvents = useMemo(() => {
     return filterMode === "micro" ? events.filter((event) => event.microEvent) : events;
   }, [events, filterMode]);
+  const hostEvents = useMemo(
+    () => events.filter((event) => currentUserId && event.createdBy === currentUserId),
+    [events, currentUserId]
+  );
 
   const eventsByDay = useMemo(() => {
     const grouped = new Map<string, EventItem[]>();
@@ -126,9 +130,7 @@ export default function EventsPage() {
       setLoading(true);
       setError(null);
       const response = await fetch("/api/events", {
-        headers: {
-          "x-user-id": currentUserId,
-        },
+        credentials: "include",
       });
 
       if (!response.ok) throw new Error("Failed to load events");
@@ -136,6 +138,7 @@ export default function EventsPage() {
       const data = (await response.json()) as EventsResponse;
       setEvents(data.events);
       setSource(data.source);
+      setCurrentUserId(data.userId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load events");
     } finally {
@@ -144,6 +147,11 @@ export default function EventsPage() {
   }
 
   async function handleRSVP(eventId: string, status: RSVPStatus) {
+    if (!currentUserId) {
+      setError("Please sign in to RSVP.");
+      return;
+    }
+
     const previous = events;
 
     const optimistic = previous.map((event) => {
@@ -183,8 +191,8 @@ export default function EventsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": currentUserId,
         },
+        credentials: "include",
         body: JSON.stringify({ status }),
       });
 
@@ -250,7 +258,7 @@ export default function EventsPage() {
     try {
       const response = await fetch(`/api/events/${eventId}`, {
         method: "DELETE",
-        headers: { "x-user-id": currentUserId },
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to delete event");
       setEvents((items) => items.filter((item) => item.id !== eventId));
@@ -277,14 +285,18 @@ export default function EventsPage() {
     setCreatingEvent(true);
     setCreateFormError(null);
     try {
+      if (!currentUserId) {
+        throw new Error("Please sign in to create or edit events.");
+      }
+
       const response = await fetch(
         editingEventId ? `/api/events/${editingEventId}` : "/api/events",
         {
         method: editingEventId ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": currentUserId,
         },
+        credentials: "include",
         body: JSON.stringify({
           title: createForm.title.trim(),
           location: createForm.location.trim(),
@@ -292,7 +304,6 @@ export default function EventsPage() {
           startsAt: startsAt.toISOString(),
           category: createForm.category.trim() || "Community",
           microEvent: createForm.microEvent,
-          createdBy: currentUserId,
         }),
       });
 
@@ -563,7 +574,7 @@ export default function EventsPage() {
                         : "border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048] hover:bg-[#d3e2f4] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-700"
                     }
                     onClick={() => void handleRSVP(event.id, status)}
-                    disabled={savingEventId === event.id}
+                    disabled={savingEventId === event.id || !currentUserId}
                   >
                     {statusLabels[status]}
                   </Button>
@@ -726,7 +737,7 @@ export default function EventsPage() {
             </form>
             ) : (
               <div className="space-y-3 px-5 py-4 sm:px-6">
-                {events.map((event) => (
+                {hostEvents.map((event) => (
                   <div
                     key={event.id}
                     className="rounded-lg border-[2px] border-[#25364d]/40 bg-[#dbe9f8] p-3 dark:border-slate-600 dark:bg-slate-800"
@@ -760,6 +771,11 @@ export default function EventsPage() {
                 ))}
                 {!events.length ? (
                   <p className="text-sm text-[#4f5942] dark:text-slate-300">No events yet.</p>
+                ) : null}
+                {!hostEvents.length ? (
+                  <p className="text-sm text-[#4f5942] dark:text-slate-300">
+                    You are not hosting any events yet.
+                  </p>
                 ) : null}
                 {createFormError ? (
                   <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">

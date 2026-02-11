@@ -6,6 +6,7 @@ create table if not exists public.events (
   location text not null default '',
   category text not null default 'General',
   micro_event boolean not null default false,
+  created_by text,
   created_at timestamptz not null default now()
 );
 
@@ -20,11 +21,38 @@ create table if not exists public.event_rsvps (
 alter table public.events enable row level security;
 alter table public.event_rsvps enable row level security;
 
+alter table public.events
+  add column if not exists created_by text;
+
+create index if not exists events_created_by_idx on public.events (created_by);
+
 drop policy if exists "events_read" on public.events;
 create policy "events_read"
   on public.events
   for select
   using (true);
+
+drop policy if exists "events_write_own" on public.events;
+create policy "events_write_own"
+  on public.events
+  for insert
+  to authenticated
+  with check (created_by = auth.uid()::text);
+
+drop policy if exists "events_update_own" on public.events;
+create policy "events_update_own"
+  on public.events
+  for update
+  to authenticated
+  using (created_by = auth.uid()::text)
+  with check (created_by = auth.uid()::text);
+
+drop policy if exists "events_delete_own" on public.events;
+create policy "events_delete_own"
+  on public.events
+  for delete
+  to authenticated
+  using (created_by = auth.uid()::text);
 
 drop policy if exists "event_rsvps_read" on public.event_rsvps;
 create policy "event_rsvps_read"
@@ -36,14 +64,16 @@ drop policy if exists "event_rsvps_write" on public.event_rsvps;
 create policy "event_rsvps_write"
   on public.event_rsvps
   for insert
-  with check (true);
+  to authenticated
+  with check (user_id = auth.uid()::text);
 
 drop policy if exists "event_rsvps_update" on public.event_rsvps;
 create policy "event_rsvps_update"
   on public.event_rsvps
   for update
-  using (true)
-  with check (true);
+  to authenticated
+  using (user_id = auth.uid()::text)
+  with check (user_id = auth.uid()::text);
 
 insert into public.events (id, title, description, starts_at, location, category, micro_event)
 values

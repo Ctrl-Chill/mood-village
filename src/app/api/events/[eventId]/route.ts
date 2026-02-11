@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server";
 
-import { deleteEvent, updateEvent } from "@/lib/events-store";
-
-function getUserId(request: Request): string {
-  return request.headers.get("x-user-id") ?? "guest-user";
-}
+import { deleteEvent, getEventHost, updateEvent } from "@/lib/events-store";
+import { getRouteAuth } from "@/lib/supabase-server";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
+  const { userId, supabase } = await getRouteAuth();
+  const actorId = userId ?? (supabase ? null : "guest-user");
+  if (!actorId) {
+    return NextResponse.json({ error: "You must be signed in to edit events" }, { status: 401 });
+  }
+
   const body = (await request.json().catch(() => null)) as
     | {
         title?: string;
@@ -23,7 +26,13 @@ export async function PATCH(
 
   if (!body) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   const { eventId } = await params;
-  const result = await updateEvent(getUserId(request), eventId, body);
+  const hostId = await getEventHost(eventId, supabase);
+  if (!hostId) return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  if (hostId !== actorId) {
+    return NextResponse.json({ error: "Only the event host can edit this event" }, { status: 403 });
+  }
+
+  const result = await updateEvent(actorId, eventId, body, supabase);
   if (!result.event) return NextResponse.json({ error: "Event not found" }, { status: 404 });
   return NextResponse.json(result);
 }
@@ -32,8 +41,20 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
+  const { userId, supabase } = await getRouteAuth();
+  const actorId = userId ?? (supabase ? null : "guest-user");
+  if (!actorId) {
+    return NextResponse.json({ error: "You must be signed in to delete events" }, { status: 401 });
+  }
+
   const { eventId } = await params;
-  const result = await deleteEvent(getUserId(request), eventId);
+  const hostId = await getEventHost(eventId, supabase);
+  if (!hostId) return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  if (hostId !== actorId) {
+    return NextResponse.json({ error: "Only the event host can delete this event" }, { status: 403 });
+  }
+
+  const result = await deleteEvent(actorId, eventId, supabase);
   if (!result.deleted) return NextResponse.json({ error: "Event not found" }, { status: 404 });
   return NextResponse.json(result);
 }
