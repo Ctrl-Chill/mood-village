@@ -1,17 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -26,33 +15,35 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-slate-50 text-slate-900 antialiased`}
+        className="frost-bg min-h-screen text-slate-900 antialiased"
       >
         <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
-          <header className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <Link href="/" className="text-xl font-semibold tracking-tight">
+          <header className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <Link href="/" className="text-xl font-black tracking-tight text-slate-900">
               Mood Village
             </Link>
             <nav className="flex flex-wrap gap-3 text-sm font-medium">
-              <Link className="rounded-full bg-white px-4 py-2 shadow-sm" href="/about">
+              <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700" href="/about">
                 About
               </Link>
-              <Link className="rounded-full bg-white px-4 py-2 shadow-sm" href="/village">
+              <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700" href="/village">
                 Village
               </Link>
-              <Link className="rounded-full bg-white px-4 py-2 shadow-sm" href="/events">
+              <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700" href="/events">
                 Events
               </Link>
-              <Link className="rounded-full bg-white px-4 py-2 shadow-sm" href="/progress">
+              <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700" href="/progress">
                 Progress
               </Link>
-              <Link className="rounded-full bg-white px-4 py-2 shadow-sm" href="/profile">
+              <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700" href="/profile">
                 Profile
               </Link>
             </nav>
+            </div>
           </header>
           <main className="flex-1 py-10">{children}</main>
-          <footer className="border-t border-slate-200 pt-6 text-xs text-slate-500">
+          <footer className="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500">
             Built for the Mood Village hackathon.
           </footer>
         </div>

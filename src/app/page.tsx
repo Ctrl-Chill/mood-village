@@ -7,15 +7,15 @@ export default function Home() {
 
   return (
     <section className="flex min-h-[60vh] items-center justify-center">
-      <div className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <p className="text-xl font-semibold text-slate-900 sm:text-2xl">
+      <div className="w-full max-w-2xl rounded-2xl border-2 border-[#314966] bg-[#dce9f8] p-8 text-center shadow-[0_8px_20px_rgba(39,64,92,0.18)]">
+        <p className="text-xl font-black text-[#15263d] sm:text-2xl">
           Hi how are you today?
         </p>
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-[#355072]">
           1 is super sad and 5 is super happy.
         </p>
         <div className="mt-6">
-          <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
+          <div className="flex items-center justify-between text-sm font-semibold text-[#1d3048]">
             <span>Mood level</span>
             <span>{moodLevel} / 5</span>
           </div>
@@ -29,7 +29,7 @@ export default function Home() {
             value={moodLevel}
             onChange={(event) => setMoodLevel(Number(event.target.value))}
           />
-          <div className="mt-2 flex justify-between text-[11px] text-slate-400">
+          <div className="mt-2 flex justify-between text-[11px] text-[#5f7fa3]">
             <span>1</span>
             <span>2</span>
             <span>3</span>
