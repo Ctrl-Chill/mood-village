@@ -30,7 +30,7 @@ export async function getCurrentUserProfile() {
   const [{ data: profile }, { data: membership }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id,name,avatar_url,community_id,trusted_contact_name,trusted_contact_phone,notification_events,notification_village,notification_push,dark_mode,data_visibility,communities(name)")
+      .select("id,name,avatar_url,community_id,trusted_contact_name,trusted_contact_phone,notification_events,notification_village,notification_push,dark_mode,data_visibility,created_at,communities(name)")
       .eq("id", user.id)
       .single(),
     supabase
