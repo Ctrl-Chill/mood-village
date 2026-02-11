@@ -1,6 +1,25 @@
 import { createBrowserClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
+// ── Lantern types ──────────────────────────────────────────────────────
+
+export interface Lantern {
+  id: string;
+  mood_id: string;
+  text: string;
+  author_name: string;
+  created_at: string;
+  replies?: Reply[];
+}
+
+export interface Reply {
+  id: string;
+  lantern_id: string;
+  text: string;
+  author_name: string;
+  created_at: string;
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -145,4 +164,98 @@ export async function getCommunityMembers(communityId: string) {
     .eq('community_id', communityId)
 
   return { data, error }
+}
+
+// ── Mock lanterns ──────────────────────────────────────────────────────
+
+const mockLanterns: Lantern[] = [
+  { id: "l1", mood_id: "cozy", text: "wrapped in a blanket watching rain", author_name: "ember", created_at: "2026-02-11T08:30:00Z", replies: [{ id: "r1", lantern_id: "l1", text: "that sounds so peaceful", author_name: "willow", created_at: "2026-02-11T09:00:00Z" }] },
+  { id: "l2", mood_id: "anxious", text: "cant stop thinking about tomorrow", author_name: "cloud", created_at: "2026-02-11T07:15:00Z", replies: [] },
+  { id: "l3", mood_id: "focused", text: "deep in the code zone right now", author_name: "pixel", created_at: "2026-02-11T06:00:00Z", replies: [{ id: "r2", lantern_id: "l3", text: "you got this!", author_name: "sage", created_at: "2026-02-11T06:30:00Z" }] },
+  { id: "l4", mood_id: "low-energy", text: "everything feels heavy today", author_name: "moth", created_at: "2026-02-11T05:45:00Z", replies: [] },
+  { id: "l5", mood_id: "social", text: "had the best coffee chat with a friend", author_name: "fern", created_at: "2026-02-11T04:20:00Z", replies: [{ id: "r3", lantern_id: "l5", text: "those moments are the best", author_name: "ember", created_at: "2026-02-11T04:50:00Z" }] },
+  { id: "l6", mood_id: "cozy", text: "baking cookies and the house smells amazing", author_name: "honey", created_at: "2026-02-11T03:30:00Z", replies: [] },
+  { id: "l7", mood_id: "anxious", text: "waiting for results is the worst part", author_name: "drift", created_at: "2026-02-11T02:00:00Z", replies: [{ id: "r4", lantern_id: "l7", text: "sending good vibes your way", author_name: "cloud", created_at: "2026-02-11T02:30:00Z" }] },
+  { id: "l8", mood_id: "focused", text: "finally understanding this concept", author_name: "nova", created_at: "2026-02-10T23:00:00Z", replies: [] },
+  { id: "l9", mood_id: "social", text: "game night with the crew tonight", author_name: "spark", created_at: "2026-02-10T22:00:00Z", replies: [{ id: "r5", lantern_id: "l9", text: "what are you playing?", author_name: "pixel", created_at: "2026-02-10T22:15:00Z" }] },
+  { id: "l10", mood_id: "low-energy", text: "just need to rest for a while", author_name: "mist", created_at: "2026-02-10T21:30:00Z", replies: [] },
+  { id: "l11", mood_id: "cozy", text: "listening to lo-fi and sketching", author_name: "ink", created_at: "2026-02-10T20:00:00Z", replies: [{ id: "r6", lantern_id: "l11", text: "share what you draw!", author_name: "fern", created_at: "2026-02-10T20:30:00Z" }] },
+  { id: "l12", mood_id: "anxious", text: "too many tabs open in my brain", author_name: "static", created_at: "2026-02-10T19:00:00Z", replies: [] },
+  { id: "l13", mood_id: "focused", text: "three hours flew by like nothing", author_name: "zen", created_at: "2026-02-10T18:00:00Z", replies: [{ id: "r7", lantern_id: "l13", text: "flow state is magic", author_name: "nova", created_at: "2026-02-10T18:30:00Z" }] },
+  { id: "l14", mood_id: "social", text: "strangers smiled at me today and it helped", author_name: "petal", created_at: "2026-02-10T17:00:00Z", replies: [] },
+  { id: "l15", mood_id: "low-energy", text: "running on empty but still here", author_name: "ash", created_at: "2026-02-10T16:00:00Z", replies: [{ id: "r8", lantern_id: "l15", text: "proud of you for showing up", author_name: "moth", created_at: "2026-02-10T16:30:00Z" }] },
+];
+
+const lanterns = [...mockLanterns];
+
+// ── Lantern CRUD ───────────────────────────────────────────────────────
+
+export async function getAllLanterns(): Promise<Lantern[]> {
+  if (supabase) {
+    const { data } = await supabase
+      .from("lanterns")
+      .select("*, replies(*)")
+      .order("created_at", { ascending: false });
+    if (data) return data;
+  }
+  return [...lanterns].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
+export async function createLantern(
+  lantern: Omit<Lantern, "id" | "created_at" | "replies">
+): Promise<Lantern> {
+  const newLantern: Lantern = {
+    ...lantern,
+    id: `l${Date.now()}`,
+    created_at: new Date().toISOString(),
+    replies: [],
+  };
+  if (supabase) {
+    const { data } = await supabase
+      .from("lanterns")
+      .insert(newLantern)
+      .select()
+      .single();
+    if (data) return data;
+  }
+  lanterns.unshift(newLantern);
+  return newLantern;
+}
+
+export async function createReply(
+  reply: Omit<Reply, "id" | "created_at">
+): Promise<Reply> {
+  const newReply: Reply = {
+    ...reply,
+    id: `r${Date.now()}`,
+    created_at: new Date().toISOString(),
+  };
+  if (supabase) {
+    const { data } = await supabase
+      .from("replies")
+      .insert(newReply)
+      .select()
+      .single();
+    if (data) return data;
+  }
+  const target = lanterns.find((l) => l.id === reply.lantern_id);
+  if (target) {
+    if (!target.replies) target.replies = [];
+    target.replies.push(newReply);
+  }
+  return newReply;
+}
+
+export async function getConversationCount(lanternId: string): Promise<number> {
+  if (supabase) {
+    const { count } = await supabase
+      .from("replies")
+      .select("*", { count: "exact", head: true })
+      .eq("lantern_id", lanternId);
+    return count || 0;
+  }
+  const target = lanterns.find((l) => l.id === lanternId);
+  return target?.replies?.length || 0;
 }
