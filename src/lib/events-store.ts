@@ -2,6 +2,102 @@ import { createClient } from "@supabase/supabase-js";
 
 import type { EventItem, RSVPStatus } from "@/lib/events-types";
 
+type Database = {
+  public: {
+    Tables: {
+      events: {
+        Row: {
+          id: string;
+          community_id: string;
+          title: string;
+          description: string | null;
+          type: "gratitude" | "co-working" | "circle" | null;
+          start_at: string | null;
+          capacity: number | null;
+          created_by: string | null;
+        };
+        Insert: {
+          id: string;
+          community_id: string;
+          title: string;
+          description?: string | null;
+          type?: "gratitude" | "co-working" | "circle" | null;
+          start_at?: string | null;
+          capacity?: number | null;
+          created_by?: string | null;
+        };
+        Update: Partial<{
+          community_id: string;
+          title: string;
+          description: string | null;
+          type: "gratitude" | "co-working" | "circle" | null;
+          start_at: string | null;
+          capacity: number | null;
+          created_by: string | null;
+        }>;
+        Relationships: [];
+      };
+      rsvps: {
+        Row: {
+          id: string;
+          event_id: string;
+          user_id: string;
+          status: RSVPStatus;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          user_id: string;
+          status: RSVPStatus;
+          created_at?: string;
+        };
+        Update: Partial<{
+          status: RSVPStatus;
+          created_at: string;
+        }>;
+        Relationships: [];
+      };
+      memberships: {
+        Row: {
+          id: string;
+          user_id: string;
+          community_id: string;
+          role: "member" | "moderator" | "admin";
+          created_at: string | null;
+        };
+        Insert: {
+          user_id: string;
+          community_id: string;
+          role?: "member" | "moderator" | "admin";
+        };
+        Update: Partial<{
+          role: "member" | "moderator" | "admin";
+        }>;
+        Relationships: [];
+      };
+      profiles: {
+        Row: {
+          id: string;
+          community_id: string | null;
+        };
+        Insert: {
+          id: string;
+          community_id?: string | null;
+        };
+        Update: Partial<{
+          community_id: string | null;
+        }>;
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
+  };
+};
+
 type MemoryEvent = Omit<EventItem, "userRsvp" | "rsvpCounts" | "rsvpMembers"> & {
   userStatuses: Record<string, RSVPStatus>;
 };
@@ -15,6 +111,21 @@ type CreateEventInput = {
   createdBy: string;
 };
 type UpdateEventInput = Partial<CreateEventInput>;
+type SupabaseEventRow = {
+  id: string;
+  community_id: string;
+  title: string;
+  description: string | null;
+  type: "gratitude" | "co-working" | "circle" | null;
+  start_at: string | null;
+  capacity: number | null;
+  created_by: string | null;
+};
+type SupabaseRsvpRow = {
+  event_id: string;
+  user_id: string;
+  status: string;
+};
 
 const seedEvents: MemoryEvent[] = [
   {
@@ -65,7 +176,7 @@ const seedEvents: MemoryEvent[] = [
 
 const memoryEvents = new Map(seedEvents.map((event) => [event.id, event]));
 
-type SupabaseClient = ReturnType<typeof createClient<any>> | null;
+type SupabaseClient = ReturnType<typeof createClient<Database>> | null;
 
 function getSupabaseClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -73,7 +184,7 @@ function getSupabaseClient(): SupabaseClient {
     process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key) return null;
-  return createClient<any>(url, key, { auth: { persistSession: false } });
+  return createClient<Database>(url, key, { auth: { persistSession: false } });
 }
 
 function toEventItem(event: MemoryEvent, userId: string): EventItem {
@@ -109,28 +220,72 @@ function isRSVPStatus(value: unknown): value is RSVPStatus {
   return value === "yes" || value === "maybe" || value === "no";
 }
 
+function toEventType(category: string): "gratitude" | "co-working" | "circle" {
+  const normalized = category.toLowerCase();
+  if (normalized.includes("gratitude")) return "gratitude";
+  if (normalized.includes("work")) return "co-working";
+  return "circle";
+}
+
+function fromEventType(type: "gratitude" | "co-working" | "circle" | null): string {
+  if (!type) return "General";
+  if (type === "co-working") return "Co-working";
+  if (type === "gratitude") return "Gratitude";
+  return "Circle";
+}
+
+async function resolveCommunityId(supabase: NonNullable<SupabaseClient>, userId: string) {
+  const envCommunityId = process.env.SUPABASE_DEFAULT_COMMUNITY_ID;
+  if (envCommunityId) return envCommunityId;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("community_id")
+    .eq("id", userId)
+    .maybeSingle();
+  if (profile?.community_id) return profile.community_id;
+
+  const { data: membership } = await supabase
+    .from("memberships")
+    .select("community_id")
+    .eq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+  return membership?.community_id ?? null;
+}
+
 export async function listEvents(userId: string): Promise<{ source: "supabase" | "memory"; events: EventItem[] }> {
   const supabase = getSupabaseClient();
   if (supabase) {
+    const communityId = await resolveCommunityId(supabase, userId);
+    if (!communityId) {
+      const events = Array.from(memoryEvents.values())
+        .map((event) => toEventItem(event, userId))
+        .sort(sortByDateAsc);
+      return { source: "memory", events };
+    }
     const { data: eventRows, error: eventsError } = await supabase
       .from("events")
-      .select("id,title,description,starts_at,location,category,micro_event")
-      .order("starts_at", { ascending: true });
+      .select("id,community_id,title,description,type,start_at,capacity,created_by")
+      .order("start_at", { ascending: true })
+      .eq("community_id", communityId);
 
     if (!eventsError && eventRows) {
-      const eventIds = eventRows.map((event) => event.id);
+      const typedEventRows = eventRows as unknown as SupabaseEventRow[];
+      const eventIds = typedEventRows.map((event) => event.id);
       const { data: allRsvps, error: rsvpError } = await supabase
-        .from("event_rsvps")
+        .from("rsvps")
         .select("event_id,user_id,status")
         .in("event_id", eventIds);
 
       if (!rsvpError && allRsvps) {
-        const rows = eventRows.map((event) => {
+        const typedRsvps = allRsvps as unknown as SupabaseRsvpRow[];
+        const rows = typedEventRows.map((event) => {
           const counts: Record<RSVPStatus, number> = { yes: 0, maybe: 0, no: 0 };
           const members: Record<RSVPStatus, string[]> = { yes: [], maybe: [], no: [] };
           let userRsvp: RSVPStatus | null = null;
 
-          allRsvps
+          typedRsvps
             .filter((rsvp) => rsvp.event_id === event.id)
             .forEach((rsvp) => {
               if (isRSVPStatus(rsvp.status)) {
@@ -145,12 +300,12 @@ export async function listEvents(userId: string): Promise<{ source: "supabase" |
           return {
             id: event.id,
             title: event.title,
-            description: event.description,
-            startsAt: event.starts_at,
-            location: event.location,
-            category: event.category,
-            microEvent: event.micro_event,
-            createdBy: "community-team",
+            description: event.description ?? "",
+            startsAt: event.start_at ?? new Date().toISOString(),
+            location: "Community Event",
+            category: fromEventType(event.type),
+            microEvent: (event.capacity ?? 999) <= 10,
+            createdBy: event.created_by ?? "community-team",
             rsvpCounts: counts,
             rsvpMembers: members,
             userRsvp,
@@ -175,17 +330,25 @@ export async function setEventRsvp(
 ): Promise<{ source: "supabase" | "memory"; event: EventItem | null }> {
   const supabase = getSupabaseClient();
   if (supabase) {
-    const { error: upsertError } = await supabase.from("event_rsvps").upsert(
-      {
-        event_id: eventId,
-        user_id: userId,
-        status,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "event_id,user_id" }
-    );
+    const { data: existing, error: selectError } = await supabase
+      .from("rsvps")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("user_id", userId)
+      .maybeSingle();
 
-    if (!upsertError) {
+    let writeError: unknown = selectError;
+    if (!selectError) {
+      if (existing?.id) {
+        const { error } = await supabase.from("rsvps").update({ status }).eq("id", existing.id);
+        writeError = error;
+      } else {
+        const { error } = await supabase.from("rsvps").insert({ event_id: eventId, user_id: userId, status });
+        writeError = error;
+      }
+    }
+
+    if (!writeError) {
       const { events } = await listEvents(userId);
       const event = events.find((item) => item.id === eventId) ?? null;
       return { source: "supabase", event };
@@ -209,18 +372,35 @@ export async function createEvent(
   const supabase = getSupabaseClient();
 
   if (supabase) {
+    const communityId = await resolveCommunityId(supabase, userId);
+    if (!communityId) {
+      const memoryEvent: MemoryEvent = {
+        id,
+        title: input.title,
+        description: input.description,
+        startsAt: input.startsAt,
+        location: input.location,
+        category: input.category,
+        microEvent: input.microEvent,
+        createdBy: input.createdBy,
+        userStatuses: {},
+      };
+      memoryEvents.set(memoryEvent.id, memoryEvent);
+      return { source: "memory", event: toEventItem(memoryEvent, userId) };
+    }
     const { data, error } = await supabase
       .from("events")
       .insert({
         id,
+        community_id: communityId,
         title: input.title,
         description: input.description,
-        starts_at: input.startsAt,
-        location: input.location,
-        category: input.category,
-        micro_event: input.microEvent,
+        type: toEventType(input.category),
+        start_at: input.startsAt,
+        capacity: input.microEvent ? 10 : 100,
+        created_by: input.createdBy,
       })
-      .select("id,title,description,starts_at,location,category,micro_event")
+      .select("id,community_id,title,description,type,start_at,capacity,created_by")
       .single();
 
     if (!error && data) {
@@ -229,12 +409,12 @@ export async function createEvent(
         event: {
           id: data.id,
           title: data.title,
-          description: data.description,
-          startsAt: data.starts_at,
-          location: data.location,
-          category: data.category,
-          microEvent: data.micro_event,
-          createdBy: input.createdBy,
+          description: data.description ?? "",
+          startsAt: data.start_at ?? input.startsAt,
+          location: input.location || "Community Event",
+          category: fromEventType(data.type),
+          microEvent: (data.capacity ?? 999) <= 10,
+          createdBy: data.created_by ?? input.createdBy,
           rsvpCounts: { yes: 0, maybe: 0, no: 0 },
           rsvpMembers: { yes: [], maybe: [], no: [] },
           userRsvp: null,
@@ -265,16 +445,21 @@ export async function updateEvent(
 ): Promise<{ source: "supabase" | "memory"; event: EventItem | null }> {
   const supabase = getSupabaseClient();
   if (supabase) {
-    const updates: Record<string, unknown> = {};
+    const updates: Database["public"]["Tables"]["events"]["Update"] = {};
     if (typeof input.title === "string") updates.title = input.title;
     if (typeof input.description === "string") updates.description = input.description;
-    if (typeof input.startsAt === "string") updates.starts_at = input.startsAt;
-    if (typeof input.location === "string") updates.location = input.location;
-    if (typeof input.category === "string") updates.category = input.category;
-    if (typeof input.microEvent === "boolean") updates.micro_event = input.microEvent;
+    if (typeof input.startsAt === "string") updates.start_at = input.startsAt;
+    if (typeof input.category === "string") updates.type = toEventType(input.category);
+    if (typeof input.microEvent === "boolean") updates.capacity = input.microEvent ? 10 : 100;
 
-    const { error } = await supabase.from("events").update(updates).eq("id", eventId);
-    if (!error) {
+    const { error, data } = await supabase
+      .from("events")
+      .update(updates)
+      .eq("id", eventId)
+      .eq("created_by", userId)
+      .select("id")
+      .maybeSingle();
+    if (!error && data) {
       const { events } = await listEvents(userId);
       const updated = events.find((item) => item.id === eventId) ?? null;
       return { source: "supabase", event: updated };
@@ -299,10 +484,17 @@ export async function deleteEvent(
 ): Promise<{ source: "supabase" | "memory"; deleted: boolean }> {
   const supabase = getSupabaseClient();
   if (supabase) {
-    const { error } = await supabase.from("events").delete().eq("id", eventId);
-    if (!error) return { source: "supabase", deleted: true };
+    const { error, data } = await supabase
+      .from("events")
+      .delete()
+      .eq("id", eventId)
+      .eq("created_by", userId)
+      .select("id")
+      .maybeSingle();
+    if (!error && data) return { source: "supabase", deleted: true };
   }
 
-  const existed = memoryEvents.delete(eventId);
-  return { source: "memory", deleted: existed };
+  const event = memoryEvents.get(eventId);
+  if (!event || event.createdBy !== userId) return { source: "memory", deleted: false };
+  return { source: "memory", deleted: memoryEvents.delete(eventId) };
 }

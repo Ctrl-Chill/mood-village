@@ -24,8 +24,6 @@ type CreateEventForm = {
 };
 type SettingsTab = "create" | "manage";
 
-const currentUserId = "demo-user";
-
 function getDefaultDateTime() {
   const defaultDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 3);
   const date = defaultDate.toISOString().slice(0, 10);
@@ -69,6 +67,7 @@ const statusLabels: Record<RSVPStatus, string> = {
 };
 
 export default function EventsPage() {
+  const [currentUserId, setCurrentUserId] = useState("");
   const [events, setEvents] = useState<EventItem[]>([]);
   const [source, setSource] = useState<"supabase" | "memory">("memory");
   const [viewMode, setViewMode] = useState<ViewMode>("calendar");
@@ -100,8 +99,27 @@ export default function EventsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void loadEvents();
+    const envUserId = process.env.NEXT_PUBLIC_DEMO_USER_ID;
+    if (envUserId) {
+      window.localStorage.setItem("mv_user_id", envUserId);
+      setCurrentUserId(envUserId);
+      return;
+    }
+
+    const existing = window.localStorage.getItem("mv_user_id");
+    if (existing && !existing.startsWith("user-")) {
+      setCurrentUserId(existing);
+      return;
+    }
+    const generated = crypto.randomUUID();
+    window.localStorage.setItem("mv_user_id", generated);
+    setCurrentUserId(generated);
   }, []);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    void loadEvents(currentUserId);
+  }, [currentUserId]);
 
   const filteredEvents = useMemo(() => {
     return filterMode === "micro" ? events.filter((event) => event.microEvent) : events;
@@ -121,13 +139,13 @@ export default function EventsPage() {
   const monthDates = useMemo(() => getMonthGridDates(calendarMonth), [calendarMonth]);
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  async function loadEvents() {
+  async function loadEvents(userId: string) {
     try {
       setLoading(true);
       setError(null);
       const response = await fetch("/api/events", {
         headers: {
-          "x-user-id": currentUserId,
+          "x-user-id": userId,
         },
       });
 
@@ -144,6 +162,7 @@ export default function EventsPage() {
   }
 
   async function handleRSVP(eventId: string, status: RSVPStatus) {
+    if (!currentUserId) return;
     const previous = events;
 
     const optimistic = previous.map((event) => {
@@ -224,6 +243,10 @@ export default function EventsPage() {
   }
 
   function startEditingEvent(event: EventItem) {
+    if (event.createdBy !== currentUserId) {
+      setCreateFormError("Only the host can edit this event.");
+      return;
+    }
     const startsAt = new Date(event.startsAt);
     const local = new Date(startsAt.getTime() - startsAt.getTimezoneOffset() * 60000);
     const date = local.toISOString().slice(0, 10);
@@ -244,6 +267,12 @@ export default function EventsPage() {
   }
 
   async function handleDeleteEvent(eventId: string) {
+    if (!currentUserId) return;
+    const event = events.find((item) => item.id === eventId);
+    if (!event || event.createdBy !== currentUserId) {
+      setCreateFormError("Only the host can delete this event.");
+      return;
+    }
     if (!window.confirm("Delete this event?")) return;
     setDeletingEventId(eventId);
     setCreateFormError(null);
@@ -263,6 +292,10 @@ export default function EventsPage() {
 
   async function handleCreateEventSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!currentUserId) {
+      setCreateFormError("User identity not ready. Try again.");
+      return;
+    }
     if (!createForm.title.trim() || !createForm.location.trim() || !createForm.date || !createForm.time) {
       setCreateFormError("Please fill title, location, date, and time.");
       return;
@@ -327,6 +360,11 @@ export default function EventsPage() {
           <span className="rounded-md border border-[#8ea8c8] bg-[#e2edf9] px-2 py-1">
             Data: {source === "supabase" ? "Live DB" : "Memory fallback"}
           </span>
+          {currentUserId ? (
+            <span className="rounded-md border border-[#8ea8c8] bg-[#e2edf9] px-2 py-1">
+              You: {currentUserId}
+            </span>
+          ) : null}
         </div>
         <h1 className="text-3xl font-black tracking-tight text-[#222620] sm:text-4xl">
           Upcoming Events
@@ -735,6 +773,7 @@ export default function EventsPage() {
                     <p className="text-xs text-[#4f5942]">
                       {new Date(event.startsAt).toLocaleString()} | {event.location}
                     </p>
+                    <p className="text-xs text-[#4f5942]">Host: {event.createdBy}</p>
                     <div className="mt-2 flex gap-2">
                       <Button
                         type="button"
@@ -742,6 +781,7 @@ export default function EventsPage() {
                         variant="outline"
                         className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048]"
                         onClick={() => startEditingEvent(event)}
+                        disabled={event.createdBy !== currentUserId}
                       >
                         Edit
                       </Button>
@@ -751,11 +791,14 @@ export default function EventsPage() {
                         variant="outline"
                         className="border-[2px] border-[#7e2d2d] bg-[#f7d8d8] text-[#7a2626] hover:bg-[#efc8c8]"
                         onClick={() => void handleDeleteEvent(event.id)}
-                        disabled={deletingEventId === event.id}
+                        disabled={deletingEventId === event.id || event.createdBy !== currentUserId}
                       >
                         {deletingEventId === event.id ? "Deleting..." : "Delete"}
                       </Button>
                     </div>
+                    {event.createdBy !== currentUserId ? (
+                      <p className="mt-1 text-[11px] text-[#5d6982]">Host only controls</p>
+                    ) : null}
                   </div>
                 ))}
                 {!events.length ? (

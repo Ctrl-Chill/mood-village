@@ -33,6 +33,9 @@ NEXT_PUBLIC_SUPABASE_URL=your_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 # Optional for server-side privileged writes:
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+# Optional for local testing against existing uuid-based schema:
+NEXT_PUBLIC_DEMO_USER_ID=auth_or_profiles_uuid
+SUPABASE_DEFAULT_COMMUNITY_ID=community_uuid
 ```
 
 2. Run SQL setup in Supabase SQL editor:

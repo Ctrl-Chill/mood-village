@@ -24,7 +24,9 @@ export async function PATCH(
   if (!body) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   const { eventId } = await params;
   const result = await updateEvent(getUserId(request), eventId, body);
-  if (!result.event) return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  if (!result.event) {
+    return NextResponse.json({ error: "Event not found or host permission required" }, { status: 403 });
+  }
   return NextResponse.json(result);
 }
 
@@ -34,6 +36,8 @@ export async function DELETE(
 ) {
   const { eventId } = await params;
   const result = await deleteEvent(getUserId(request), eventId);
-  if (!result.deleted) return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  if (!result.deleted) {
+    return NextResponse.json({ error: "Event not found or host permission required" }, { status: 403 });
+  }
   return NextResponse.json(result);
 }
