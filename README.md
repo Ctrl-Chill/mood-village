@@ -36,7 +36,9 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
 2. Run SQL setup in Supabase SQL editor:
+- `supabase/profile_auth_schema.sql` (profile/auth + lantern tables/policies)
 - `supabase/events_schema.sql`
+- Optional standalone lantern script: `supabase/lantern_schema.sql`
 
 3. Start app:
 

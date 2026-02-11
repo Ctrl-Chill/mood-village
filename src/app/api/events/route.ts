@@ -1,19 +1,23 @@
 import { NextResponse } from "next/server";
 
 import { createEvent, listEvents } from "@/lib/events-store";
+import { getRouteAuth } from "@/lib/supabase-server";
 import type { EventsPayload } from "@/lib/events-types";
 
-function getUserId(request: Request): string {
-  return request.headers.get("x-user-id") ?? "guest-user";
-}
-
-export async function GET(request: Request) {
-  const result = await listEvents(getUserId(request));
-  const payload: EventsPayload = { source: result.source, events: result.events };
+export async function GET() {
+  const { userId, supabase } = await getRouteAuth();
+  const result = await listEvents(userId, supabase);
+  const payload: EventsPayload = { source: result.source, events: result.events, userId };
   return NextResponse.json(payload);
 }
 
 export async function POST(request: Request) {
+  const { userId, supabase } = await getRouteAuth();
+  const actorId = userId ?? (supabase ? null : "guest-user");
+  if (!actorId) {
+    return NextResponse.json({ error: "You must be signed in to create events" }, { status: 401 });
+  }
+
   const body = (await request.json().catch(() => null)) as
     | {
         title?: string;
@@ -22,7 +26,6 @@ export async function POST(request: Request) {
         location?: string;
         category?: string;
         microEvent?: boolean;
-        createdBy?: string;
       }
     | null;
 
@@ -33,15 +36,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await createEvent(getUserId(request), {
+  const result = await createEvent(
+    actorId,
+    {
     title: body.title.trim(),
     description: body.description?.trim() ?? "",
     startsAt: body.startsAt,
     location: body.location.trim(),
     category: body.category?.trim() || "General",
     microEvent: Boolean(body.microEvent),
-    createdBy: body.createdBy?.trim() || getUserId(request),
-  });
+    },
+    supabase
+  );
 
   return NextResponse.json(result, { status: 201 });
 }

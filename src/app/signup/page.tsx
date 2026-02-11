@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { createBrowserSupabaseClient } from "@/lib/supabase";
+import { createBrowserSupabaseClient, getDefaultAvatar, uploadAvatarImage } from "@/lib/supabase";
 
 export default function SignupPage() {
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
@@ -15,9 +15,23 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!avatarFile) {
+      setAvatarPreview(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(avatarFile);
+    setAvatarPreview(objectUrl);
+
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [avatarFile]);
 
   async function handleEmailSignup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,13 +65,26 @@ export default function SignupPage() {
       return;
     }
 
+    const fallbackAvatar = getDefaultAvatar(name.trim() || email.split("@")[0] || "MoodVillageUser");
+    let avatarUrlToSave = data.user?.user_metadata?.avatar_url ?? fallbackAvatar;
+    let uploadNotice: string | null = null;
+
+    if (data.user && avatarFile && data.session) {
+      const uploaded = await uploadAvatarImage(supabase, data.user.id, avatarFile);
+      if (uploaded.error) {
+        uploadNotice = `Profile photo was not uploaded: ${uploaded.error.message}`;
+      } else {
+        avatarUrlToSave = uploaded.data?.publicUrl ?? avatarUrlToSave;
+      }
+    }
+
     if (data.user) {
       await supabase.from("profiles").upsert(
         {
           id: data.user.id,
           name: name.trim() || email.split("@")[0],
           email,
-          avatar_url: data.user.user_metadata?.avatar_url ?? null,
+          avatar_url: avatarUrlToSave,
         },
         { onConflict: "id" },
       );
@@ -66,7 +93,9 @@ export default function SignupPage() {
     setIsLoading(false);
 
     if (!data.session) {
-      setMessage("Account created. Check your email to confirm your account, then log in.");
+      setMessage(
+        `Account created. Check your email to confirm your account, then log in. You can upload/change your profile photo after logging in.${uploadNotice ? ` ${uploadNotice}` : ""}`,
+      );
       return;
     }
 
@@ -112,6 +141,27 @@ export default function SignupPage() {
         ) : null}
 
         <form className="space-y-4" onSubmit={handleEmailSignup}>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-800">Profile photo (optional)</label>
+            <div className="mb-2 flex items-center gap-3">
+              <img
+                src={avatarPreview ?? getDefaultAvatar(name || email || "MoodVillageUser")}
+                alt="Profile preview"
+                className="h-14 w-14 rounded-full border-2 border-sky-200 bg-white object-cover"
+              />
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={(event) => {
+                  const selected = event.target.files?.[0] ?? null;
+                  setAvatarFile(selected);
+                }}
+                className="block w-full rounded-xl border border-sky-300 bg-white px-3 py-2 text-sm text-slate-900 file:mr-3 file:rounded-lg file:border-0 file:bg-sky-100 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-sky-800"
+              />
+            </div>
+            <p className="text-xs text-slate-500">PNG/JPG/WEBP/GIF up to your storage bucket limit.</p>
+          </div>
+
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-800">Name</label>
             <input

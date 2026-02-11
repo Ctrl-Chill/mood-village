@@ -38,22 +38,22 @@ function getLinePoints(values: number[]) {
 
 export default function ProgressPage() {
   return (
-    <section className="space-y-6 rounded-2xl border-2 border-[#314966] bg-[#dce9f8] p-6 shadow-[0_8px_20px_rgba(39,64,92,0.18)]">
+    <section className="space-y-6 rounded-2xl border-2 border-[#314966] bg-[#dce9f8] p-6 shadow-[0_8px_20px_rgba(39,64,92,0.18)] dark:border-slate-600 dark:bg-slate-900/90 dark:shadow-[0_8px_20px_rgba(2,6,23,0.5)]">
       <header className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#355072]">Progress</p>
-        <h1 className="text-3xl font-black text-[#15263d]">Trends & Impact</h1>
-        <p className="max-w-2xl text-base text-[#355072]">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#355072] dark:text-slate-300">Progress</p>
+        <h1 className="text-3xl font-black text-[#15263d] dark:text-slate-100">Trends & Impact</h1>
+        <p className="max-w-2xl text-base text-[#355072] dark:text-slate-300">
           Personal stats, community impact, and history in one dashboard.
         </p>
       </header>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <article className="rounded-xl border border-[#49658a] bg-[#edf3fb] p-5 shadow-[0_2px_0_#8da7c6]">
+        <article className="rounded-xl border border-[#49658a] bg-[#edf3fb] p-5 shadow-[0_2px_0_#8da7c6] dark:border-slate-500 dark:bg-slate-800 dark:shadow-none">
           <div className="mb-3">
-            <p className="text-sm font-semibold text-[#1d3048]">Mood trend (12 weeks)</p>
-            <p className="text-xs text-[#4d6a8f]">Simple line graph from check-in history</p>
+            <p className="text-sm font-semibold text-[#1d3048] dark:text-slate-100">Mood trend (12 weeks)</p>
+            <p className="text-xs text-[#4d6a8f] dark:text-slate-300">Simple line graph from check-in history</p>
           </div>
-          <svg viewBox="0 0 100 50" className="h-36 w-full rounded-md border border-[#a9bfdc] bg-[#f7fbff] p-2">
+          <svg viewBox="0 0 100 50" className="h-36 w-full rounded-md border border-[#a9bfdc] bg-[#f7fbff] p-2 dark:border-slate-600 dark:bg-slate-900">
             <polyline
               fill="none"
               stroke="#2f5c8f"
@@ -62,19 +62,19 @@ export default function ProgressPage() {
               vectorEffect="non-scaling-stroke"
             />
           </svg>
-          <div className="mt-2 grid grid-cols-6 gap-1 text-[10px] text-[#5f7fa3] sm:grid-cols-12">
+          <div className="mt-2 grid grid-cols-6 gap-1 text-[10px] text-[#5f7fa3] dark:text-slate-400 sm:grid-cols-12">
             {moodLabels.map((label) => (
               <span key={label}>{label}</span>
             ))}
           </div>
         </article>
 
-        <article className="rounded-xl border border-[#49658a] bg-[#edf3fb] p-5 shadow-[0_2px_0_#8da7c6]">
+        <article className="rounded-xl border border-[#49658a] bg-[#edf3fb] p-5 shadow-[0_2px_0_#8da7c6] dark:border-slate-500 dark:bg-slate-800 dark:shadow-none">
           <div className="mb-3">
-            <p className="text-sm font-semibold text-[#1d3048]">Weekly activity</p>
-            <p className="text-xs text-[#4d6a8f]">Posts, events joined, and gratitude shared</p>
+            <p className="text-sm font-semibold text-[#1d3048] dark:text-slate-100">Weekly activity</p>
+            <p className="text-xs text-[#4d6a8f] dark:text-slate-300">Posts, events joined, and gratitude shared</p>
           </div>
-          <div className="grid h-44 grid-cols-7 items-end gap-2 rounded-md border border-[#a9bfdc] bg-[#f7fbff] p-3">
+          <div className="grid h-44 grid-cols-7 items-end gap-2 rounded-md border border-[#a9bfdc] bg-[#f7fbff] p-3 dark:border-slate-600 dark:bg-slate-900">
             {activityBars.map((item) => {
               const total = item.posts + item.events + item.gratitude;
               return (
@@ -84,72 +84,72 @@ export default function ProgressPage() {
                     style={{ height: `${Math.max(12, total * 8)}px` }}
                     title={`${item.label}: ${total} actions`}
                   />
-                  <span className="text-[10px] font-medium text-[#4d6a8f]">{item.label}</span>
+                  <span className="text-[10px] font-medium text-[#4d6a8f] dark:text-slate-400">{item.label}</span>
                 </div>
               );
             })}
           </div>
-          <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-[#4d6a8f]">
+          <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-[#4d6a8f] dark:text-slate-400">
             <span>Blue bar = total actions/day</span>
           </div>
         </article>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <article className="rounded-xl border border-[#49658a] bg-[#edf3fb] p-5 shadow-[0_2px_0_#8da7c6]">
-          <p className="text-sm font-semibold text-[#1d3048]">Personal stats</p>
+        <article className="rounded-xl border border-[#49658a] bg-[#edf3fb] p-5 shadow-[0_2px_0_#8da7c6] dark:border-slate-500 dark:bg-slate-800 dark:shadow-none">
+          <p className="text-sm font-semibold text-[#1d3048] dark:text-slate-100">Personal stats</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border border-[#9eb6d7] bg-[#f7fbff] p-3">
-              <p className="text-xs text-[#4d6a8f]">Current streak</p>
-              <p className="text-xl font-black text-[#15263d]">11 days</p>
+            <div className="rounded-lg border border-[#9eb6d7] bg-[#f7fbff] p-3 dark:border-slate-600 dark:bg-slate-900">
+              <p className="text-xs text-[#4d6a8f] dark:text-slate-400">Current streak</p>
+              <p className="text-xl font-black text-[#15263d] dark:text-slate-100">11 days</p>
             </div>
-            <div className="rounded-lg border border-[#9eb6d7] bg-[#f7fbff] p-3">
-              <p className="text-xs text-[#4d6a8f]">Avg mood</p>
-              <p className="text-xl font-black text-[#15263d]">3.9 / 5</p>
+            <div className="rounded-lg border border-[#9eb6d7] bg-[#f7fbff] p-3 dark:border-slate-600 dark:bg-slate-900">
+              <p className="text-xs text-[#4d6a8f] dark:text-slate-400">Avg mood</p>
+              <p className="text-xl font-black text-[#15263d] dark:text-slate-100">3.9 / 5</p>
             </div>
-            <div className="rounded-lg border border-[#9eb6d7] bg-[#f7fbff] p-3">
-              <p className="text-xs text-[#4d6a8f]">Check-ins</p>
-              <p className="text-xl font-black text-[#15263d]">47</p>
+            <div className="rounded-lg border border-[#9eb6d7] bg-[#f7fbff] p-3 dark:border-slate-600 dark:bg-slate-900">
+              <p className="text-xs text-[#4d6a8f] dark:text-slate-400">Check-ins</p>
+              <p className="text-xl font-black text-[#15263d] dark:text-slate-100">47</p>
             </div>
           </div>
         </article>
 
-        <article className="rounded-xl border border-[#49658a] bg-[#edf3fb] p-5 shadow-[0_2px_0_#8da7c6]">
-          <p className="text-sm font-semibold text-[#1d3048]">Community impact</p>
+        <article className="rounded-xl border border-[#49658a] bg-[#edf3fb] p-5 shadow-[0_2px_0_#8da7c6] dark:border-slate-500 dark:bg-slate-800 dark:shadow-none">
+          <p className="text-sm font-semibold text-[#1d3048] dark:text-slate-100">Community impact</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border border-[#9eb6d7] bg-[#f7fbff] p-3">
-              <p className="text-xs text-[#4d6a8f]">Total posts</p>
-              <p className="text-xl font-black text-[#15263d]">63</p>
+            <div className="rounded-lg border border-[#9eb6d7] bg-[#f7fbff] p-3 dark:border-slate-600 dark:bg-slate-900">
+              <p className="text-xs text-[#4d6a8f] dark:text-slate-400">Total posts</p>
+              <p className="text-xl font-black text-[#15263d] dark:text-slate-100">63</p>
             </div>
-            <div className="rounded-lg border border-[#9eb6d7] bg-[#f7fbff] p-3">
-              <p className="text-xs text-[#4d6a8f]">Events joined</p>
-              <p className="text-xl font-black text-[#15263d]">19</p>
+            <div className="rounded-lg border border-[#9eb6d7] bg-[#f7fbff] p-3 dark:border-slate-600 dark:bg-slate-900">
+              <p className="text-xs text-[#4d6a8f] dark:text-slate-400">Events joined</p>
+              <p className="text-xl font-black text-[#15263d] dark:text-slate-100">19</p>
             </div>
-            <div className="rounded-lg border border-[#9eb6d7] bg-[#f7fbff] p-3">
-              <p className="text-xs text-[#4d6a8f]">Gratitude shared</p>
-              <p className="text-xl font-black text-[#15263d]">28</p>
+            <div className="rounded-lg border border-[#9eb6d7] bg-[#f7fbff] p-3 dark:border-slate-600 dark:bg-slate-900">
+              <p className="text-xs text-[#4d6a8f] dark:text-slate-400">Gratitude shared</p>
+              <p className="text-xl font-black text-[#15263d] dark:text-slate-100">28</p>
             </div>
           </div>
         </article>
       </div>
 
-      <article className="rounded-xl border border-[#49658a] bg-[#edf3fb] p-5 shadow-[0_2px_0_#8da7c6]">
+      <article className="rounded-xl border border-[#49658a] bg-[#edf3fb] p-5 shadow-[0_2px_0_#8da7c6] dark:border-slate-500 dark:bg-slate-800 dark:shadow-none">
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-sm font-semibold text-[#1d3048]">Check-in history</p>
-          <p className="text-xs text-[#4d6a8f]">Scrollable recent activity</p>
+          <p className="text-sm font-semibold text-[#1d3048] dark:text-slate-100">Check-in history</p>
+          <p className="text-xs text-[#4d6a8f] dark:text-slate-300">Scrollable recent activity</p>
         </div>
-        <div className="max-h-72 overflow-y-auto rounded-lg border border-[#9eb6d7] bg-[#f7fbff]">
+        <div className="max-h-72 overflow-y-auto rounded-lg border border-[#9eb6d7] bg-[#f7fbff] dark:border-slate-600 dark:bg-slate-900">
           {history.map((item) => (
             <div
               key={`${item.date}-${item.note}`}
-              className="grid grid-cols-[90px_90px_1fr_140px] gap-3 border-b border-[#d6e4f5] px-3 py-2 text-sm last:border-b-0"
+              className="grid grid-cols-[90px_90px_1fr_140px] gap-3 border-b border-[#d6e4f5] px-3 py-2 text-sm last:border-b-0 dark:border-slate-700"
             >
-              <p className="font-semibold text-[#1d3048]">{item.date}</p>
-              <p className="text-[#355072]">
-                Mood {item.mood} <span className="text-[#5f7fa3]">({item.energy})</span>
+              <p className="font-semibold text-[#1d3048] dark:text-slate-100">{item.date}</p>
+              <p className="text-[#355072] dark:text-slate-300">
+                Mood {item.mood} <span className="text-[#5f7fa3] dark:text-slate-400">({item.energy})</span>
               </p>
-              <p className="text-[#355072]">{item.note}</p>
-              <p className="text-right text-[#4d6a8f]">{item.impact}</p>
+              <p className="text-[#355072] dark:text-slate-300">{item.note}</p>
+              <p className="text-right text-[#4d6a8f] dark:text-slate-400">{item.impact}</p>
             </div>
           ))}
         </div>

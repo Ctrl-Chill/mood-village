@@ -17,4 +17,5 @@ export type EventItem = {
 export type EventsPayload = {
   source: "supabase" | "memory";
   events: EventItem[];
+  userId: string | null;
 };
