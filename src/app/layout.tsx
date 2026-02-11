@@ -41,6 +41,9 @@ export default function RootLayout({
               >
                 About
               </Link>
+              <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700" href="/map">
+                Map
+              </Link>
               <Link className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700" href="/events">
                 Events
               </Link>
