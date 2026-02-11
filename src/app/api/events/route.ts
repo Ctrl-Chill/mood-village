@@ -8,40 +8,50 @@ function getUserId(request: Request): string {
 }
 
 export async function GET(request: Request) {
-  const result = await listEvents(getUserId(request));
-  const payload: EventsPayload = { source: result.source, events: result.events };
-  return NextResponse.json(payload);
+  try {
+    const result = await listEvents(getUserId(request));
+    const payload: EventsPayload = { source: result.source, events: result.events };
+    return NextResponse.json(payload);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to fetch events";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => null)) as
-    | {
-        title?: string;
-        description?: string;
-        startsAt?: string;
-        location?: string;
-        category?: string;
-        microEvent?: boolean;
-        createdBy?: string;
-      }
-    | null;
+  try {
+    const body = (await request.json().catch(() => null)) as
+      | {
+          title?: string;
+          description?: string;
+          startsAt?: string;
+          location?: string;
+          category?: string;
+          microEvent?: boolean;
+          createdBy?: string;
+        }
+      | null;
 
-  if (!body?.title?.trim() || !body.startsAt || !body.location?.trim()) {
-    return NextResponse.json(
-      { error: "Missing required fields: title, startsAt, location" },
-      { status: 400 }
-    );
+    if (!body?.title?.trim() || !body.startsAt || !body.location?.trim()) {
+      return NextResponse.json(
+        { error: "Missing required fields: title, startsAt, location" },
+        { status: 400 }
+      );
+    }
+
+    const result = await createEvent(getUserId(request), {
+      title: body.title.trim(),
+      description: body.description?.trim() ?? "",
+      startsAt: body.startsAt,
+      location: body.location.trim(),
+      category: body.category?.trim() || "General",
+      microEvent: Boolean(body.microEvent),
+      createdBy: body.createdBy?.trim() || getUserId(request),
+    });
+
+    return NextResponse.json(result, { status: 201 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to create event";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const result = await createEvent(getUserId(request), {
-    title: body.title.trim(),
-    description: body.description?.trim() ?? "",
-    startsAt: body.startsAt,
-    location: body.location.trim(),
-    category: body.category?.trim() || "General",
-    microEvent: Boolean(body.microEvent),
-    createdBy: body.createdBy?.trim() || getUserId(request),
-  });
-
-  return NextResponse.json(result, { status: 201 });
 }

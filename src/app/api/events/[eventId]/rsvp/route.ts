@@ -15,17 +15,22 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const body = (await request.json().catch(() => null)) as { status?: string } | null;
-  if (!body?.status || !isRSVPStatus(body.status)) {
-    return NextResponse.json({ error: "Invalid RSVP status" }, { status: 400 });
+  try {
+    const body = (await request.json().catch(() => null)) as { status?: string } | null;
+    if (!body?.status || !isRSVPStatus(body.status)) {
+      return NextResponse.json({ error: "Invalid RSVP status" }, { status: 400 });
+    }
+
+    const { eventId } = await params;
+    const result = await setEventRsvp(getUserId(request), eventId, body.status);
+
+    if (!result.event) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ source: result.source, event: result.event });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to save RSVP";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const { eventId } = await params;
-  const result = await setEventRsvp(getUserId(request), eventId, body.status);
-
-  if (!result.event) {
-    return NextResponse.json({ error: "Event not found" }, { status: 404 });
-  }
-
-  return NextResponse.json({ source: result.source, event: result.event });
 }

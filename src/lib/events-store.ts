@@ -259,62 +259,68 @@ export async function listEvents(userId: string): Promise<{ source: "supabase" |
   if (supabase) {
     const communityId = await resolveCommunityId(supabase, userId);
     if (!communityId) {
-      const events = Array.from(memoryEvents.values())
-        .map((event) => toEventItem(event, userId))
-        .sort(sortByDateAsc);
-      return { source: "memory", events };
+      return { source: "supabase", events: [] };
     }
+
     const { data: eventRows, error: eventsError } = await supabase
       .from("events")
       .select("id,community_id,title,description,type,start_at,capacity,created_by")
       .order("start_at", { ascending: true })
       .eq("community_id", communityId);
 
-    if (!eventsError && eventRows) {
-      const typedEventRows = eventRows as unknown as SupabaseEventRow[];
-      const eventIds = typedEventRows.map((event) => event.id);
-      const { data: allRsvps, error: rsvpError } = await supabase
-        .from("rsvps")
-        .select("event_id,user_id,status")
-        .in("event_id", eventIds);
+    if (eventsError || !eventRows) {
+      throw new Error(`Could not load events from Supabase: ${eventsError?.message ?? "unknown error"}`);
+    }
 
-      if (!rsvpError && allRsvps) {
-        const typedRsvps = allRsvps as unknown as SupabaseRsvpRow[];
-        const rows = typedEventRows.map((event) => {
-          const counts: Record<RSVPStatus, number> = { yes: 0, maybe: 0, no: 0 };
-          const members: Record<RSVPStatus, string[]> = { yes: [], maybe: [], no: [] };
-          let userRsvp: RSVPStatus | null = null;
+    const typedEventRows = eventRows as unknown as SupabaseEventRow[];
+    if (typedEventRows.length === 0) {
+      return { source: "supabase", events: [] };
+    }
 
-          typedRsvps
-            .filter((rsvp) => rsvp.event_id === event.id)
-            .forEach((rsvp) => {
-              if (isRSVPStatus(rsvp.status)) {
-                counts[rsvp.status] += 1;
-                members[rsvp.status].push(String(rsvp.user_id));
-                if (rsvp.user_id === userId) {
-                  userRsvp = rsvp.status;
-                }
-              }
-            });
+    const eventIds = typedEventRows.map((event) => event.id);
+    const { data: allRsvps, error: rsvpError } = await supabase
+      .from("rsvps")
+      .select("event_id,user_id,status")
+      .in("event_id", eventIds);
 
-          return {
-            id: event.id,
-            title: event.title,
-            description: event.description ?? "",
-            startsAt: event.start_at ?? new Date().toISOString(),
-            location: "Community Event",
-            category: fromEventType(event.type),
-            microEvent: (event.capacity ?? 999) <= 10,
-            createdBy: event.created_by ?? "community-team",
-            rsvpCounts: counts,
-            rsvpMembers: members,
-            userRsvp,
-          } satisfies EventItem;
+    if (rsvpError || !allRsvps) {
+      throw new Error(`Could not load RSVPs from Supabase: ${rsvpError?.message ?? "unknown error"}`);
+    }
+
+    const typedRsvps = allRsvps as unknown as SupabaseRsvpRow[];
+    const rows = typedEventRows.map((event) => {
+      const counts: Record<RSVPStatus, number> = { yes: 0, maybe: 0, no: 0 };
+      const members: Record<RSVPStatus, string[]> = { yes: [], maybe: [], no: [] };
+      let userRsvp: RSVPStatus | null = null;
+
+      typedRsvps
+        .filter((rsvp) => rsvp.event_id === event.id)
+        .forEach((rsvp) => {
+          if (isRSVPStatus(rsvp.status)) {
+            counts[rsvp.status] += 1;
+            members[rsvp.status].push(String(rsvp.user_id));
+            if (rsvp.user_id === userId) {
+              userRsvp = rsvp.status;
+            }
+          }
         });
 
-        return { source: "supabase", events: rows };
-      }
-    }
+      return {
+        id: event.id,
+        title: event.title,
+        description: event.description ?? "",
+        startsAt: event.start_at ?? new Date().toISOString(),
+        location: "Community Event",
+        category: fromEventType(event.type),
+        microEvent: (event.capacity ?? 999) <= 10,
+        createdBy: event.created_by ?? "community-team",
+        rsvpCounts: counts,
+        rsvpMembers: members,
+        userRsvp,
+      } satisfies EventItem;
+    });
+
+    return { source: "supabase", events: rows };
   }
 
   const events = Array.from(memoryEvents.values())
@@ -348,11 +354,13 @@ export async function setEventRsvp(
       }
     }
 
-    if (!writeError) {
-      const { events } = await listEvents(userId);
-      const event = events.find((item) => item.id === eventId) ?? null;
-      return { source: "supabase", event };
+    if (writeError) {
+      throw new Error("Could not save RSVP in Supabase.");
     }
+
+    const { events } = await listEvents(userId);
+    const event = events.find((item) => item.id === eventId) ?? null;
+    return { source: "supabase", event };
   }
 
   const event = memoryEvents.get(eventId);
@@ -374,19 +382,9 @@ export async function createEvent(
   if (supabase) {
     const communityId = await resolveCommunityId(supabase, userId);
     if (!communityId) {
-      const memoryEvent: MemoryEvent = {
-        id,
-        title: input.title,
-        description: input.description,
-        startsAt: input.startsAt,
-        location: input.location,
-        category: input.category,
-        microEvent: input.microEvent,
-        createdBy: input.createdBy,
-        userStatuses: {},
-      };
-      memoryEvents.set(memoryEvent.id, memoryEvent);
-      return { source: "memory", event: toEventItem(memoryEvent, userId) };
+      throw new Error(
+        "No community found for this user. Set SUPABASE_DEFAULT_COMMUNITY_ID or add memberships/profiles.community_id."
+      );
     }
     const { data, error } = await supabase
       .from("events")
@@ -403,24 +401,26 @@ export async function createEvent(
       .select("id,community_id,title,description,type,start_at,capacity,created_by")
       .single();
 
-    if (!error && data) {
-      return {
-        source: "supabase",
-        event: {
-          id: data.id,
-          title: data.title,
-          description: data.description ?? "",
-          startsAt: data.start_at ?? input.startsAt,
-          location: input.location || "Community Event",
-          category: fromEventType(data.type),
-          microEvent: (data.capacity ?? 999) <= 10,
-          createdBy: data.created_by ?? input.createdBy,
-          rsvpCounts: { yes: 0, maybe: 0, no: 0 },
-          rsvpMembers: { yes: [], maybe: [], no: [] },
-          userRsvp: null,
-        },
-      };
+    if (error || !data) {
+      throw new Error(`Could not create event in Supabase: ${error?.message ?? "unknown error"}`);
     }
+
+    return {
+      source: "supabase",
+      event: {
+        id: data.id,
+        title: data.title,
+        description: data.description ?? "",
+        startsAt: data.start_at ?? input.startsAt,
+        location: input.location || "Community Event",
+        category: fromEventType(data.type),
+        microEvent: (data.capacity ?? 999) <= 10,
+        createdBy: data.created_by ?? input.createdBy,
+        rsvpCounts: { yes: 0, maybe: 0, no: 0 },
+        rsvpMembers: { yes: [], maybe: [], no: [] },
+        userRsvp: null,
+      },
+    };
   }
 
   const memoryEvent: MemoryEvent = {
@@ -459,11 +459,15 @@ export async function updateEvent(
       .eq("created_by", userId)
       .select("id")
       .maybeSingle();
-    if (!error && data) {
-      const { events } = await listEvents(userId);
-      const updated = events.find((item) => item.id === eventId) ?? null;
-      return { source: "supabase", event: updated };
+    if (error) {
+      throw new Error(`Could not update event in Supabase: ${error.message}`);
     }
+    if (!data) {
+      return { source: "supabase", event: null };
+    }
+    const { events } = await listEvents(userId);
+    const updated = events.find((item) => item.id === eventId) ?? null;
+    return { source: "supabase", event: updated };
   }
 
   const event = memoryEvents.get(eventId);
@@ -491,7 +495,10 @@ export async function deleteEvent(
       .eq("created_by", userId)
       .select("id")
       .maybeSingle();
-    if (!error && data) return { source: "supabase", deleted: true };
+    if (error) {
+      throw new Error(`Could not delete event in Supabase: ${error.message}`);
+    }
+    return { source: "supabase", deleted: Boolean(data) };
   }
 
   const event = memoryEvents.get(eventId);
