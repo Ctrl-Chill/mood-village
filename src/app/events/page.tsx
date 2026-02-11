@@ -54,12 +54,12 @@ function getMonthGridDates(monthAnchor: Date) {
 }
 
 function getEventPillClass(event: EventItem) {
-  if (event.microEvent) return "bg-[#caa93f] text-[#1f2318]";
+  if (event.microEvent) return "bg-[#caa93f] text-[#1f2318] dark:bg-amber-500 dark:text-slate-950";
   const category = event.category.toLowerCase();
-  if (category.includes("network")) return "bg-[#6e7d5b] text-white";
-  if (category.includes("well")) return "bg-[#879668] text-white";
-  if (category.includes("work")) return "bg-[#b85a57] text-white";
-  return "bg-[#7f8d62] text-white";
+  if (category.includes("network")) return "bg-[#6e7d5b] text-white dark:bg-emerald-600";
+  if (category.includes("well")) return "bg-[#879668] text-white dark:bg-lime-600";
+  if (category.includes("work")) return "bg-[#b85a57] text-white dark:bg-rose-600";
+  return "bg-[#7f8d62] text-white dark:bg-teal-600";
 }
 
 const statusLabels: Record<RSVPStatus, string> = {
@@ -318,20 +318,20 @@ export default function EventsPage() {
   }
 
   return (
-    <section className="relative mx-auto w-full max-w-6xl overflow-hidden rounded-2xl border-2 border-[#314966] bg-[#dce9f8] p-5 shadow-[0_10px_24px_rgba(39,64,92,0.2)] sm:p-6">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-5 bg-[#b9cfea]" />
+    <section className="relative mx-auto w-full max-w-6xl overflow-hidden rounded-2xl border-2 border-[#314966] bg-[#dce9f8] p-5 shadow-[0_10px_24px_rgba(39,64,92,0.2)] dark:border-slate-600 dark:bg-slate-900/90 dark:shadow-[0_10px_24px_rgba(2,6,23,0.55)] sm:p-6">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-5 bg-[#b9cfea] dark:bg-slate-800/80" />
       <div className="relative z-10">
       <header className="mt-2 space-y-3">
-        <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-[#4f5942]">
-          <span className="rounded-md border border-[#8ea8c8] bg-[#c4d9f1] px-2 py-1">Events</span>
-          <span className="rounded-md border border-[#8ea8c8] bg-[#e2edf9] px-2 py-1">
+        <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-[#4f5942] dark:text-slate-300">
+          <span className="rounded-md border border-[#8ea8c8] bg-[#c4d9f1] px-2 py-1 dark:border-slate-500 dark:bg-slate-800 dark:text-slate-100">Events</span>
+          <span className="rounded-md border border-[#8ea8c8] bg-[#e2edf9] px-2 py-1 dark:border-slate-500 dark:bg-slate-800 dark:text-slate-200">
             Data: {source === "supabase" ? "Live DB" : "Memory fallback"}
           </span>
         </div>
-        <h1 className="text-3xl font-black tracking-tight text-[#222620] sm:text-4xl">
+        <h1 className="text-3xl font-black tracking-tight text-[#222620] dark:text-slate-100 sm:text-4xl">
           Upcoming Events
         </h1>
-        <p className="max-w-2xl text-sm text-[#4f5942] sm:text-base">
+        <p className="max-w-2xl text-sm text-[#4f5942] dark:text-slate-300 sm:text-base">
           Calendar + list view with fast RSVP actions and quick yes/maybe/no visibility.
         </p>
       </header>
@@ -339,21 +339,21 @@ export default function EventsPage() {
       <div className="relative z-10 mt-6 flex flex-wrap gap-3">
         <Button
           variant={viewMode === "calendar" ? "default" : "outline"}
-          className={viewMode === "calendar" ? "border border-[#49658a] bg-[#99b6dc] text-[#15263d] hover:bg-[#89a8d2]" : "border border-[#49658a] bg-[#edf3fb] text-[#1d3048] hover:bg-[#deebf8]"}
+          className={viewMode === "calendar" ? "border border-[#49658a] bg-[#99b6dc] text-[#15263d] hover:bg-[#89a8d2] dark:border-slate-500 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400" : "border border-[#49658a] bg-[#edf3fb] text-[#1d3048] hover:bg-[#deebf8] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"}
           onClick={() => setViewMode("calendar")}
         >
           Calendar
         </Button>
         <Button
           variant={viewMode === "list" ? "default" : "outline"}
-          className={viewMode === "list" ? "border border-[#49658a] bg-[#99b6dc] text-[#15263d] hover:bg-[#89a8d2]" : "border border-[#49658a] bg-[#edf3fb] text-[#1d3048] hover:bg-[#deebf8]"}
+          className={viewMode === "list" ? "border border-[#49658a] bg-[#99b6dc] text-[#15263d] hover:bg-[#89a8d2] dark:border-slate-500 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400" : "border border-[#49658a] bg-[#edf3fb] text-[#1d3048] hover:bg-[#deebf8] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"}
           onClick={() => setViewMode("list")}
         >
           List
         </Button>
         <Button
           variant={filterMode === "all" ? "default" : "outline"}
-          className={filterMode === "all" ? "border border-[#49658a] bg-[#a8c1e3] text-[#15263d] hover:bg-[#98b3db]" : "border border-[#49658a] bg-[#edf3fb] text-[#1d3048] hover:bg-[#deebf8]"}
+          className={filterMode === "all" ? "border border-[#49658a] bg-[#a8c1e3] text-[#15263d] hover:bg-[#98b3db] dark:border-slate-500 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400" : "border border-[#49658a] bg-[#edf3fb] text-[#1d3048] hover:bg-[#deebf8] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"}
           onClick={() => {
             setFilterMode("all");
             setViewMode("list");
@@ -363,14 +363,14 @@ export default function EventsPage() {
         </Button>
         <Button
           variant={filterMode === "micro" ? "default" : "outline"}
-          className={filterMode === "micro" ? "border border-[#49658a] bg-[#a8c1e3] text-[#15263d] hover:bg-[#98b3db]" : "border border-[#49658a] bg-[#edf3fb] text-[#1d3048] hover:bg-[#deebf8]"}
+          className={filterMode === "micro" ? "border border-[#49658a] bg-[#a8c1e3] text-[#15263d] hover:bg-[#98b3db] dark:border-slate-500 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400" : "border border-[#49658a] bg-[#edf3fb] text-[#1d3048] hover:bg-[#deebf8] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"}
           onClick={() => setFilterMode("micro")}
         >
           Micro-events
         </Button>
         <Button
           variant="outline"
-          className="border border-[#49658a] bg-[#f3c36b] text-[#1f2f45] hover:bg-[#eab75b]"
+          className="border border-[#49658a] bg-[#f3c36b] text-[#1f2f45] hover:bg-[#eab75b] dark:border-amber-700 dark:bg-amber-500 dark:text-slate-950 dark:hover:bg-amber-400"
           onClick={openCreateModal}
           disabled={creatingEvent || isCreateModalOpen}
         >
@@ -379,7 +379,7 @@ export default function EventsPage() {
       </div>
 
       {error ? (
-        <div className="relative z-10 mt-4 rounded-xl border-[2px] border-[#7e2d2d] bg-[#ffe5e5] px-4 py-3 text-sm text-[#7a2626]">
+        <div className="relative z-10 mt-4 rounded-xl border-[2px] border-[#7e2d2d] bg-[#ffe5e5] px-4 py-3 text-sm text-[#7a2626] dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
           {error}
         </div>
       ) : null}
@@ -389,21 +389,21 @@ export default function EventsPage() {
           {Array.from({ length: 4 }).map((_, index) => (
             <div
               key={index}
-              className="h-44 animate-pulse rounded-2xl border border-[#ccd1b8] bg-[#f7f4e3]"
+              className="h-44 animate-pulse rounded-2xl border border-[#ccd1b8] bg-[#f7f4e3] dark:border-slate-700 dark:bg-slate-800"
             />
           ))}
         </div>
       ) : viewMode === "calendar" ? (
         <div className="relative z-10 mt-6 space-y-3">
-          <div className="flex items-center justify-between rounded-xl border-[2px] border-[#25364d] bg-[#e2edf9] px-3 py-2">
-            <div className="text-sm font-medium text-[#1f2a1a]">
+          <div className="flex items-center justify-between rounded-xl border-[2px] border-[#25364d] bg-[#e2edf9] px-3 py-2 dark:border-slate-600 dark:bg-slate-800">
+            <div className="text-sm font-medium text-[#1f2a1a] dark:text-slate-100">
               {calendarMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
             </div>
             <div className="flex items-center gap-1">
               <Button
                 size="sm"
                 variant="outline"
-                className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048]"
+                className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
                 onClick={() =>
                   setCalendarMonth(
                     (current) => new Date(current.getFullYear(), current.getMonth() - 1, 1)
@@ -415,7 +415,7 @@ export default function EventsPage() {
               <Button
                 size="sm"
                 variant="outline"
-                className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048]"
+                className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
                 onClick={() => {
                   const now = new Date();
                   setCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1));
@@ -426,7 +426,7 @@ export default function EventsPage() {
               <Button
                 size="sm"
                 variant="outline"
-                className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048]"
+                className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
                 onClick={() =>
                   setCalendarMonth(
                     (current) => new Date(current.getFullYear(), current.getMonth() + 1, 1)
@@ -437,12 +437,12 @@ export default function EventsPage() {
               </Button>
             </div>
           </div>
-          <div className="overflow-hidden rounded-xl border-[2px] border-[#25364d] bg-[#e2edf9]">
-            <div className="grid grid-cols-7 border-b-[2px] border-[#25364d] bg-[#c6daf1]">
+          <div className="overflow-hidden rounded-xl border-[2px] border-[#25364d] bg-[#e2edf9] dark:border-slate-600 dark:bg-slate-900">
+            <div className="grid grid-cols-7 border-b-[2px] border-[#25364d] bg-[#c6daf1] dark:border-slate-600 dark:bg-slate-800">
               {weekDays.map((day) => (
                 <div
                   key={day}
-                  className="border-r border-[#25364d]/35 px-2 py-2 text-center text-xs font-bold text-[#355072] last:border-r-0"
+                  className="border-r border-[#25364d]/35 px-2 py-2 text-center text-xs font-bold text-[#355072] last:border-r-0 dark:border-slate-700 dark:text-slate-300"
                 >
                   {day}
                 </div>
@@ -456,13 +456,13 @@ export default function EventsPage() {
                 return (
                   <div
                     key={key}
-                    className="min-h-32 border-r border-b border-[#25364d]/20 px-2 py-2 last:border-r-0"
+                    className="min-h-32 border-r border-b border-[#25364d]/20 px-2 py-2 last:border-r-0 dark:border-slate-700"
                   >
                     <p
                       className={
                         inCurrentMonth
-                          ? "text-xs font-semibold text-[#1f2a1a]"
-                          : "text-xs font-medium text-[#a9ae97]"
+                          ? "text-xs font-semibold text-[#1f2a1a] dark:text-slate-100"
+                          : "text-xs font-medium text-[#a9ae97] dark:text-slate-500"
                       }
                     >
                       {date.getDate()}
@@ -481,7 +481,7 @@ export default function EventsPage() {
                         </div>
                       ))}
                       {dayEvents.length > 4 ? (
-                        <p className="text-[11px] font-medium text-[#6a7458]">
+                        <p className="text-[11px] font-medium text-[#6a7458] dark:text-slate-400">
                           +{dayEvents.length - 4} more
                         </p>
                       ) : null}
@@ -497,21 +497,21 @@ export default function EventsPage() {
           {filteredEvents.map((event) => (
             <article
               key={event.id}
-              className="rounded-xl border-[2px] border-[#25364d] bg-[#e2edf9] p-5 shadow-[4px_4px_0_#25364d]"
+              className="rounded-xl border-[2px] border-[#25364d] bg-[#e2edf9] p-5 shadow-[4px_4px_0_#25364d] dark:border-slate-600 dark:bg-slate-800 dark:shadow-[4px_4px_0_#0f172a]"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-semibold text-[#1f2a1a]">{event.title}</h2>
-                  <p className="mt-1 text-sm text-[#3f4a33]">{event.description}</p>
+                  <h2 className="text-lg font-semibold text-[#1f2a1a] dark:text-slate-100">{event.title}</h2>
+                  <p className="mt-1 text-sm text-[#3f4a33] dark:text-slate-300">{event.description}</p>
                 </div>
                 {event.microEvent ? (
-                  <span className="rounded-md border border-[#25364d] bg-[#c6daf1] px-2 py-0.5 text-xs text-[#355072]">
+                  <span className="rounded-md border border-[#25364d] bg-[#c6daf1] px-2 py-0.5 text-xs text-[#355072] dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
                     Micro-event
                   </span>
                 ) : null}
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-4 text-sm text-[#2b3424]">
+              <div className="mt-4 flex flex-wrap gap-4 text-sm text-[#2b3424] dark:text-slate-300">
                 <span className="inline-flex items-center gap-1.5">
                   <CalendarDays className="size-4" />
                   {new Date(event.startsAt).toLocaleDateString([], {
@@ -533,11 +533,11 @@ export default function EventsPage() {
                 </span>
               </div>
 
-              <div className="mt-3 text-sm text-[#2b3424]">
+              <div className="mt-3 text-sm text-[#2b3424] dark:text-slate-300">
                 Added by: <span className="font-medium">{event.createdBy}</span>
               </div>
 
-              <div className="mt-3 space-y-1 text-xs text-[#4f5942]">
+              <div className="mt-3 space-y-1 text-xs text-[#4f5942] dark:text-slate-400">
                 <p>
                   Yes ({event.rsvpCounts.yes}):{" "}
                   {event.rsvpMembers.yes.length ? event.rsvpMembers.yes.join(", ") : "None"}
@@ -559,8 +559,8 @@ export default function EventsPage() {
                     size="sm"
                     className={
                       event.userRsvp === status
-                        ? "border-[2px] border-[#25364d] bg-[#88a9d4] text-[#15263d] hover:bg-[#789ac8]"
-                        : "border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048] hover:bg-[#d3e2f4]"
+                        ? "border-[2px] border-[#25364d] bg-[#88a9d4] text-[#15263d] hover:bg-[#789ac8] dark:border-slate-500 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
+                        : "border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048] hover:bg-[#d3e2f4] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-700"
                     }
                     onClick={() => void handleRSVP(event.id, status)}
                     disabled={savingEventId === event.id}
@@ -572,7 +572,7 @@ export default function EventsPage() {
             </article>
           ))}
           {!filteredEvents.length ? (
-            <div className="rounded-xl border-[2px] border-[#25364d] bg-[#e2edf9] p-6 text-sm text-[#355072]">
+            <div className="rounded-xl border-[2px] border-[#25364d] bg-[#e2edf9] p-6 text-sm text-[#355072] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
               No events in this filter.
             </div>
           ) : null}
@@ -580,19 +580,19 @@ export default function EventsPage() {
       )}
 
       {isCreateModalOpen ? (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/30 px-4">
-          <div className="w-full max-w-2xl rounded-xl border-[3px] border-[#25364d] bg-[#e2edf9] p-0 shadow-[8px_8px_0_#25364d]">
-            <div className="border-b-[2px] border-[#25364d] px-5 py-4 sm:px-6">
-              <h2 className="text-xl font-semibold text-[#1f2a1a]">Event settings</h2>
-              <p className="text-sm text-[#4f5942]">Create, edit, or delete events.</p>
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 px-4">
+          <div className="w-full max-w-2xl rounded-xl border-[3px] border-[#25364d] bg-[#e2edf9] p-0 shadow-[8px_8px_0_#25364d] dark:border-slate-600 dark:bg-slate-900 dark:shadow-[8px_8px_0_#020617]">
+            <div className="border-b-[2px] border-[#25364d] px-5 py-4 sm:px-6 dark:border-slate-700">
+              <h2 className="text-xl font-semibold text-[#1f2a1a] dark:text-slate-100">Event settings</h2>
+              <p className="text-sm text-[#4f5942] dark:text-slate-300">Create, edit, or delete events.</p>
             </div>
 
-            <div className="flex gap-2 border-b border-[#25364d]/30 px-5 py-3 sm:px-6">
+            <div className="flex gap-2 border-b border-[#25364d]/30 px-5 py-3 sm:px-6 dark:border-slate-700">
               <Button
                 type="button"
                 size="sm"
                 variant={settingsTab === "create" ? "default" : "outline"}
-                className={settingsTab === "create" ? "border-[2px] border-[#25364d] bg-[#88a9d4] text-[#15263d] hover:bg-[#789ac8]" : "border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048]"}
+                className={settingsTab === "create" ? "border-[2px] border-[#25364d] bg-[#88a9d4] text-[#15263d] hover:bg-[#789ac8] dark:border-slate-500 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400" : "border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"}
                 onClick={() => setSettingsTab("create")}
               >
                 {editingEventId ? "Edit event" : "Create event"}
@@ -601,7 +601,7 @@ export default function EventsPage() {
                 type="button"
                 size="sm"
                 variant={settingsTab === "manage" ? "default" : "outline"}
-                className={settingsTab === "manage" ? "border-[2px] border-[#25364d] bg-[#88a9d4] text-[#15263d] hover:bg-[#789ac8]" : "border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048]"}
+                className={settingsTab === "manage" ? "border-[2px] border-[#25364d] bg-[#88a9d4] text-[#15263d] hover:bg-[#789ac8] dark:border-slate-500 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400" : "border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"}
                 onClick={() => setSettingsTab("manage")}
               >
                 Manage events
@@ -611,13 +611,13 @@ export default function EventsPage() {
             {settingsTab === "create" ? (
             <form className="space-y-4 px-5 py-4 sm:px-6" onSubmit={handleCreateEventSubmit}>
               <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-[#2b3424]" htmlFor="event-title">
+                <label className="text-sm font-semibold text-[#2b3424] dark:text-slate-200" htmlFor="event-title">
                   Title
                 </label>
                 <input
                   id="event-title"
                   type="text"
-                  className="w-full rounded-md border-[2px] border-[#25364d]/40 bg-[#f3f8ff] px-3 py-2 text-sm text-[#1f2a1a] outline-none ring-[#88a9d4] focus:ring-2"
+                  className="w-full rounded-md border-[2px] border-[#25364d]/40 bg-[#f3f8ff] px-3 py-2 text-sm text-[#1f2a1a] outline-none ring-[#88a9d4] focus:ring-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:ring-sky-500"
                   value={createForm.title}
                   onChange={(event) =>
                     setCreateForm((prev) => ({ ...prev, title: event.target.value }))
@@ -628,13 +628,13 @@ export default function EventsPage() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-[#2b3424]" htmlFor="event-date">
+                  <label className="text-sm font-semibold text-[#2b3424] dark:text-slate-200" htmlFor="event-date">
                     Date
                   </label>
                   <input
                     id="event-date"
                     type="date"
-                    className="w-full rounded-md border-[2px] border-[#25364d]/40 bg-[#f3f8ff] px-3 py-2 text-sm text-[#1f2a1a] outline-none ring-[#88a9d4] focus:ring-2"
+                    className="w-full rounded-md border-[2px] border-[#25364d]/40 bg-[#f3f8ff] px-3 py-2 text-sm text-[#1f2a1a] outline-none ring-[#88a9d4] focus:ring-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:ring-sky-500"
                     value={createForm.date}
                     onChange={(event) =>
                       setCreateForm((prev) => ({ ...prev, date: event.target.value }))
@@ -642,13 +642,13 @@ export default function EventsPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-[#2b3424]" htmlFor="event-time">
+                  <label className="text-sm font-semibold text-[#2b3424] dark:text-slate-200" htmlFor="event-time">
                     Time
                   </label>
                   <input
                     id="event-time"
                     type="time"
-                    className="w-full rounded-md border-[2px] border-[#25364d]/40 bg-[#f3f8ff] px-3 py-2 text-sm text-[#1f2a1a] outline-none ring-[#88a9d4] focus:ring-2"
+                    className="w-full rounded-md border-[2px] border-[#25364d]/40 bg-[#f3f8ff] px-3 py-2 text-sm text-[#1f2a1a] outline-none ring-[#88a9d4] focus:ring-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:ring-sky-500"
                     value={createForm.time}
                     onChange={(event) =>
                       setCreateForm((prev) => ({ ...prev, time: event.target.value }))
@@ -658,13 +658,13 @@ export default function EventsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-[#2b3424]" htmlFor="event-location">
+                <label className="text-sm font-semibold text-[#2b3424] dark:text-slate-200" htmlFor="event-location">
                   Location
                 </label>
                 <input
                   id="event-location"
                   type="text"
-                  className="w-full rounded-md border-[2px] border-[#25364d]/40 bg-[#f3f8ff] px-3 py-2 text-sm text-[#1f2a1a] outline-none ring-[#88a9d4] focus:ring-2"
+                  className="w-full rounded-md border-[2px] border-[#25364d]/40 bg-[#f3f8ff] px-3 py-2 text-sm text-[#1f2a1a] outline-none ring-[#88a9d4] focus:ring-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:ring-sky-500"
                   value={createForm.location}
                   onChange={(event) =>
                     setCreateForm((prev) => ({ ...prev, location: event.target.value }))
@@ -674,12 +674,12 @@ export default function EventsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-[#2b3424]" htmlFor="event-description">
+                <label className="text-sm font-semibold text-[#2b3424] dark:text-slate-200" htmlFor="event-description">
                   Description
                 </label>
                 <textarea
                   id="event-description"
-                  className="min-h-20 w-full rounded-md border-[2px] border-[#25364d]/40 bg-[#f3f8ff] px-3 py-2 text-sm text-[#1f2a1a] outline-none ring-[#88a9d4] focus:ring-2"
+                  className="min-h-20 w-full rounded-md border-[2px] border-[#25364d]/40 bg-[#f3f8ff] px-3 py-2 text-sm text-[#1f2a1a] outline-none ring-[#88a9d4] focus:ring-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:ring-sky-500"
                   value={createForm.description}
                   onChange={(event) =>
                     setCreateForm((prev) => ({ ...prev, description: event.target.value }))
@@ -688,7 +688,7 @@ export default function EventsPage() {
                 />
               </div>
 
-              <label className="flex items-center gap-2 text-sm text-[#2b3424]">
+              <label className="flex items-center gap-2 text-sm text-[#2b3424] dark:text-slate-200">
                 <input
                   type="checkbox"
                   checked={createForm.microEvent}
@@ -709,7 +709,7 @@ export default function EventsPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048]"
+                  className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
                   onClick={closeCreateModal}
                   disabled={creatingEvent}
                 >
@@ -717,7 +717,7 @@ export default function EventsPage() {
                 </Button>
                 <Button
                   type="submit"
-                  className="border-[2px] border-[#25364d] bg-[#88a9d4] text-[#15263d] hover:bg-[#789ac8]"
+                  className="border-[2px] border-[#25364d] bg-[#88a9d4] text-[#15263d] hover:bg-[#789ac8] dark:border-slate-500 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
                   disabled={creatingEvent}
                 >
                   {creatingEvent ? "Saving..." : editingEventId ? "Save Changes" : "Create Event"}
@@ -729,10 +729,10 @@ export default function EventsPage() {
                 {events.map((event) => (
                   <div
                     key={event.id}
-                    className="rounded-lg border-[2px] border-[#25364d]/40 bg-[#dbe9f8] p-3"
+                    className="rounded-lg border-[2px] border-[#25364d]/40 bg-[#dbe9f8] p-3 dark:border-slate-600 dark:bg-slate-800"
                   >
-                    <p className="font-medium text-[#1f2a1a]">{event.title}</p>
-                    <p className="text-xs text-[#4f5942]">
+                    <p className="font-medium text-[#1f2a1a] dark:text-slate-100">{event.title}</p>
+                    <p className="text-xs text-[#4f5942] dark:text-slate-300">
                       {new Date(event.startsAt).toLocaleString()} | {event.location}
                     </p>
                     <div className="mt-2 flex gap-2">
@@ -740,7 +740,7 @@ export default function EventsPage() {
                         type="button"
                         size="sm"
                         variant="outline"
-                        className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048]"
+                        className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
                         onClick={() => startEditingEvent(event)}
                       >
                         Edit
@@ -759,7 +759,7 @@ export default function EventsPage() {
                   </div>
                 ))}
                 {!events.length ? (
-                  <p className="text-sm text-[#4f5942]">No events yet.</p>
+                  <p className="text-sm text-[#4f5942] dark:text-slate-300">No events yet.</p>
                 ) : null}
                 {createFormError ? (
                   <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -770,7 +770,7 @@ export default function EventsPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048]"
+                    className="border-[2px] border-[#25364d] bg-[#e2edf9] text-[#1d3048] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
                     onClick={closeCreateModal}
                   >
                     Close

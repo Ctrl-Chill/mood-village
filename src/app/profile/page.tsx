@@ -49,6 +49,14 @@ function formatJoinedDate(value?: string | null) {
   return dt.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
+function getStoredThemePreference(): boolean | null {
+  if (typeof window === "undefined") return null;
+  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (storedTheme === "dark") return true;
+  if (storedTheme === "light") return false;
+  return null;
+}
+
 export default function ProfilePage() {
   const router = useRouter();
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
@@ -61,6 +69,7 @@ export default function ProfilePage() {
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isSavingTrustedContact, setIsSavingTrustedContact] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   const [eventNotifications, setEventNotifications] = useState(true);
@@ -74,16 +83,21 @@ export default function ProfilePage() {
   const [isEditingTrustedContact, setIsEditingTrustedContact] = useState(false);
 
   useEffect(() => {
-    const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (storedTheme === "dark") setDarkMode(true);
-    if (storedTheme === "light") setDarkMode(false);
+    setIsHydrated(true);
+    const storedTheme = getStoredThemePreference();
+    if (storedTheme !== null) {
+      setDarkMode(storedTheme);
+      return;
+    }
+    setDarkMode(document.documentElement.classList.contains("dark"));
   }, []);
 
   useEffect(() => {
+    if (!isHydrated) return;
     const root = document.documentElement;
     root.classList.toggle("dark", darkMode);
     window.localStorage.setItem(THEME_STORAGE_KEY, darkMode ? "dark" : "light");
-  }, [darkMode]);
+  }, [darkMode, isHydrated]);
 
   useEffect(() => {
     let cancelled = false;
@@ -139,7 +153,10 @@ export default function ProfilePage() {
       setEventNotifications(profileRow?.notification_events ?? true);
       setVillageNotifications(profileRow?.notification_village ?? true);
       setPushNotifications(profileRow?.notification_push ?? false);
-      setDarkMode(profileRow?.dark_mode ?? false);
+      const storedTheme = getStoredThemePreference();
+      if (storedTheme === null) {
+        setDarkMode(profileRow?.dark_mode ?? false);
+      }
       setDataVisibility((profileRow?.data_visibility as Visibility) ?? "friends");
       setIsLoadingProfile(false);
     }
@@ -255,15 +272,17 @@ export default function ProfilePage() {
     setIsUploadingAvatar(false);
   }
 
-  const pageShell = darkMode
-    ? "min-h-screen -mx-4 bg-slate-950 px-4 py-6 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+  const effectiveDarkMode = isHydrated ? darkMode : false;
+
+  const pageShell = effectiveDarkMode
+    ? "min-h-screen -mx-4 bg-transparent px-4 py-6 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
     : "-mx-4 bg-transparent px-4 py-2 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8";
 
   if (!hasSupabase) {
     return (
       <div className={pageShell}>
         <section className="mx-auto w-full max-w-6xl space-y-6 pb-12">
-          <p className={darkMode ? "text-amber-200" : "text-amber-700"}>
+          <p className={effectiveDarkMode ? "text-amber-200" : "text-amber-700"}>
             Supabase env vars are missing. Configure auth to access profile.
           </p>
         </section>
@@ -275,7 +294,7 @@ export default function ProfilePage() {
     return (
       <div className={pageShell}>
         <section className="mx-auto w-full max-w-6xl space-y-6 pb-12">
-          <p className={darkMode ? "text-slate-300" : "text-slate-600"}>Checking session...</p>
+          <p className={effectiveDarkMode ? "text-slate-300" : "text-slate-600"}>Checking session...</p>
         </section>
       </div>
     );
@@ -297,11 +316,11 @@ export default function ProfilePage() {
         <div
           className={`rounded-3xl border-2 p-4 transition-colors md:p-6 ${
             darkMode
-              ? "border-slate-700 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 shadow-[10px_12px_0px_0px_rgba(30,41,59,0.95)]"
+              ? "border-slate-500 bg-slate-900/90 shadow-[0_8px_20px_rgba(2,6,23,0.5)]"
               : "border-sky-900/80 bg-gradient-to-b from-sky-100 to-sky-50 shadow-[8px_10px_0px_0px_rgba(30,58,138,0.8)]"
           }`}
         >
-          <div className={`mb-5 flex flex-wrap gap-2 border-b pb-4 ${darkMode ? "border-slate-700" : "border-sky-200"}`}>
+          <div className={`mb-5 flex flex-wrap gap-2 border-b pb-4 ${darkMode ? "border-slate-600" : "border-sky-200"}`}>
             {sections.map((section) => (
               <button
                 key={section.id}
@@ -309,10 +328,10 @@ export default function ProfilePage() {
                 className={`inline-flex min-w-28 items-center justify-center rounded-xl border px-4 py-2 text-center text-sm font-medium transition ${
                   activeSection === section.id
                     ? darkMode
-                      ? "border-slate-100 bg-slate-100 text-slate-900"
+                      ? "border-slate-300 bg-slate-100 text-slate-900"
                       : "border-sky-800 bg-sky-200 text-sky-900"
                     : darkMode
-                      ? "border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700"
+                      ? "border-slate-500 bg-slate-800 text-slate-200 hover:bg-slate-700"
                       : "border-sky-300 bg-white/80 text-slate-700 hover:bg-sky-100"
                 }`}
               >
@@ -322,12 +341,12 @@ export default function ProfilePage() {
           </div>
 
           {notice ? (
-            <p className={darkMode ? "mb-4 text-sm text-sky-200" : "mb-4 text-sm text-sky-700"}>{notice}</p>
+            <p className={darkMode ? "mb-4 rounded-lg border border-sky-700/40 bg-sky-950/40 px-3 py-2 text-sm text-sky-200" : "mb-4 text-sm text-sky-700"}>{notice}</p>
           ) : null}
 
           {activeSection === "overview" && (
             <div className="space-y-4">
-              <div className={`rounded-2xl border p-5 ${darkMode ? "border-slate-600 bg-slate-800/90" : "border-sky-300 bg-white/90"}`}>
+              <div className={`rounded-2xl border p-5 ${darkMode ? "border-slate-500 bg-slate-800" : "border-sky-300 bg-white/90"}`}>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                   <img
                     src={profile.avatar}
@@ -338,7 +357,7 @@ export default function ProfilePage() {
                     <h2 className={`text-2xl font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>{profile.name}</h2>
                     <p className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>{profile.email}</p>
                     <div className="flex flex-wrap gap-2">
-                      <span className="rounded-full border border-sky-300 bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                      <span className="rounded-full border border-sky-300 bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-200">
                         {profile.communityName}
                       </span>
                     </div>
@@ -380,7 +399,7 @@ export default function ProfilePage() {
 
           {activeSection === "settings" && (
             <div className="grid gap-4 lg:grid-cols-2">
-              <div className={`rounded-2xl border p-5 ${darkMode ? "border-slate-600 bg-slate-800/90" : "border-sky-300 bg-white/90"}`}>
+              <div className={`rounded-2xl border p-5 ${darkMode ? "border-slate-500 bg-slate-800" : "border-sky-300 bg-white/90"}`}>
                 <h3 className={`mb-4 text-lg font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>Notifications</h3>
                 <div className="space-y-4">
                   <ToggleSetting label="Event notifications" description="Get updates on events and RSVPs" checked={eventNotifications} onChange={setEventNotifications} darkMode={darkMode} />
@@ -390,11 +409,11 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-4">
-                <div className={`rounded-2xl border p-5 ${darkMode ? "border-slate-600 bg-slate-800/90" : "border-sky-300 bg-white/90"}`}>
+                <div className={`rounded-2xl border p-5 ${darkMode ? "border-slate-500 bg-slate-800" : "border-sky-300 bg-white/90"}`}>
                   <h3 className={`mb-4 text-lg font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>App Theme</h3>
                   <ToggleSetting label="Dark mode" description="Switch between light and dark theme" checked={darkMode} onChange={setDarkMode} darkMode={darkMode} />
                 </div>
-                <div className={`rounded-2xl border p-5 ${darkMode ? "border-slate-600 bg-slate-800/90" : "border-sky-300 bg-white/90"}`}>
+                <div className={`rounded-2xl border p-5 ${darkMode ? "border-slate-500 bg-slate-800" : "border-sky-300 bg-white/90"}`}>
                   <h3 className={`mb-3 text-lg font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>Privacy</h3>
                   <label className={`mb-2 block text-sm font-medium ${darkMode ? "text-slate-200" : "text-slate-700"}`}>Profile visibility</label>
                   <select
@@ -415,7 +434,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={handleSaveSettings}
                   disabled={isSavingSettings}
-                  className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-60"
+                  className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-60 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
                 >
                   {isSavingSettings ? "Saving..." : "Save Settings"}
                 </button>
@@ -425,7 +444,7 @@ export default function ProfilePage() {
 
           {activeSection === "safety" && (
             <div className="space-y-4">
-              <div className={`rounded-2xl border p-5 ${darkMode ? "border-slate-600 bg-slate-800/90" : "border-sky-300 bg-white/90"}`}>
+              <div className={`rounded-2xl border p-5 ${darkMode ? "border-slate-500 bg-slate-800" : "border-sky-300 bg-white/90"}`}>
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <h3 className={`text-lg font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>Trusted Contact</h3>
                   {!isEditingTrustedContact ? (
@@ -476,7 +495,7 @@ export default function ProfilePage() {
                         type="button"
                         onClick={saveTrustedContact}
                         disabled={isSavingTrustedContact}
-                        className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-60"
+                        className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-60 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
                       >
                         {isSavingTrustedContact ? "Saving..." : "Save"}
                       </button>
@@ -496,7 +515,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 ) : (
-                  <div className={`rounded-xl border p-4 ${darkMode ? "border-slate-500 bg-slate-700" : "border-sky-200 bg-sky-50"}`}>
+                  <div className={`rounded-xl border p-4 ${darkMode ? "border-slate-500 bg-slate-800" : "border-sky-200 bg-sky-50"}`}>
                     <p className={`font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>{profile.trustedContactName || "Not set"}</p>
                     <p className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>{profile.trustedContactPhone || "No phone yet"}</p>
                   </div>
@@ -507,7 +526,7 @@ export default function ProfilePage() {
 
           {activeSection === "account" && (
             <div className="space-y-4">
-              <div className={`rounded-2xl border p-5 ${darkMode ? "border-slate-600 bg-slate-800/90" : "border-sky-300 bg-white/90"}`}>
+              <div className={`rounded-2xl border p-5 ${darkMode ? "border-slate-500 bg-slate-800" : "border-sky-300 bg-white/90"}`}>
                 <h3 className={`mb-4 text-lg font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>Security</h3>
                 <div className="space-y-3">
                   <div>
@@ -537,7 +556,7 @@ function InfoCard({
   darkMode: boolean;
 }) {
   return (
-    <div className={`rounded-xl border p-4 ${darkMode ? "border-slate-600 bg-slate-800/90" : "border-sky-300 bg-white/90"}`}>
+    <div className={`rounded-xl border p-4 ${darkMode ? "border-slate-500 bg-slate-800" : "border-sky-300 bg-white/90"}`}>
       <p className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-500"}`}>
         <span className="mr-1" aria-hidden>
           {icon}
@@ -551,7 +570,7 @@ function InfoCard({
 
 function LineItem({ label, value, darkMode }: { label: string; value: string; darkMode: boolean }) {
   return (
-    <div className={`flex items-center justify-between border-b pb-2 last:border-b-0 ${darkMode ? "border-slate-700" : "border-sky-100"}`}>
+    <div className={`flex items-center justify-between border-b pb-2 last:border-b-0 ${darkMode ? "border-slate-600" : "border-sky-100"}`}>
       <span className={darkMode ? "text-slate-300" : "text-slate-500"}>{label}</span>
       <span className={darkMode ? "font-medium text-slate-100" : "font-medium text-slate-900"}>{value}</span>
     </div>
@@ -572,7 +591,7 @@ function ToggleSetting({
   darkMode: boolean;
 }) {
   return (
-    <div className={`flex items-center justify-between gap-4 border-b pb-4 last:border-0 last:pb-0 ${darkMode ? "border-slate-700" : "border-sky-100"}`}>
+    <div className={`flex items-center justify-between gap-4 border-b pb-4 last:border-0 last:pb-0 ${darkMode ? "border-slate-600" : "border-sky-100"}`}>
       <div className="pr-3">
         <p className={`text-sm font-medium ${darkMode ? "text-slate-100" : "text-slate-900"}`}>{label}</p>
         <p className={`text-xs ${darkMode ? "text-slate-300" : "text-slate-500"}`}>{description}</p>
